@@ -246,6 +246,31 @@ func lp_patch(resource string, args []string) (string, error) {
 	return do_process(client, req)
 }
 
+func lp_put(resource string, jsonFile string) (string, error) {
+	var credential = get_credential()
+	if *debug {
+		log.Print("PUT ", resource, " ", jsonFile)
+	}
+	payload, err := ioutil.ReadFile(jsonFile)
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
+	}
+	if !json.Valid(payload) {
+		log.Fatal("Invalid JSON file: " + jsonFile)
+	}
+	if *debug {
+		log.Print("JSON: ", string(payload))
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("PUT", lpAPI+resource, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	set_auth_header(&req.Header, credential)
+	return do_process(client, req)
+}
+
 func lp_post(resource string, args []string) (string, error) {
 	var credential = get_credential()
 	if *debug {
@@ -322,7 +347,11 @@ func main() {
 		}
 		fmt.Println(payload)
 	case method == "put":
-		fmt.Printf("%s is not implemented yet.\n", method)
+		payload, err := lp_put(args[1], args[2])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(payload)
 	case method == "post":
 		payload, err := lp_post(args[1], args[2:])
 		if err != nil {
