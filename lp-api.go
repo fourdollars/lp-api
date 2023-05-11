@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type Config struct {
+type Credential struct {
 	Key    string `toml:"oauth_consumer_key"`
 	Token  string `toml:"oauth_token"`
 	Secret string `toml:"oauth_token_secret"`
@@ -43,7 +43,7 @@ func request_token() (string, string) {
 	return m["oauth_token"][0], m["oauth_token_secret"][0]
 }
 
-func access_token(oauth_token string, oauth_token_secret string) (Config, error) {
+func access_token(oauth_token string, oauth_token_secret string) (Credential, error) {
 again:
 	time.Sleep(time.Second)
 	resp, err := http.PostForm("https://launchpad.net/+access-token",
@@ -55,41 +55,42 @@ again:
 		},
 	)
 	if err != nil {
-		return Config{}, err
+		return Credential{}, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Config{}, err
+		return Credential{}, err
 	}
 	mesg := string(body)
 	if mesg == "Request token has not yet been reviewed. Try again later." {
 		goto again
 	} else if mesg == "End-user refused to authorize request token." {
-		return Config{}, errors.New(mesg)
+		return Credential{}, errors.New(mesg)
 	}
 	log.Print(mesg)
 	m, err := url.ParseQuery(mesg)
 	if err != nil {
-		return Config{}, err
+		return Credential{}, err
 	}
-	return Config{
+	return Credential{
 		Key:    "System-wide: golang (lp-api)",
 		Token:  m["oauth_token"][0],
 		Secret: m["oauth_token_secret"][0],
 	}, nil
 }
 
-func main() {
-	conf := os.Getenv("HOME") + "/.config/lp-api.toml"
+func get_credential() Credential {
+	var credential Credential
+	conf := os.Getenv("HOME") + "/.credential/lp-api.toml"
 	if _, err := os.Stat(conf); os.IsNotExist(err) {
 		oauth_token, oauth_token_secret := request_token()
 		fmt.Printf("Please open https://launchpad.net/+authorize-token?oauth_token=%s&allow_permission=DESKTOP_INTEGRATION to authorize the token.\n", oauth_token)
-		config, err := access_token(oauth_token, oauth_token_secret)
+		credential, err = access_token(oauth_token, oauth_token_secret)
 		if err != nil {
 			panic(err)
 		}
-		bytes, err := toml.Marshal(&config)
+		bytes, err := toml.Marshal(&credential)
 		if err != nil {
 			panic(err)
 		}
@@ -108,13 +109,17 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		var config Config
-		err = toml.Unmarshal([]byte(data), &config)
+		err = toml.Unmarshal([]byte(data), &credential)
 		if err != nil {
 			panic(err)
 		}
-		log.Print("Found " + config.Key + " " + config.Token)
+		log.Print("Found " + credential.Key + " " + credential.Token)
 	}
+	return credential
+}
+
+func main() {
+	get_credential()
 	if len(os.Args) > 1 {
 		switch method := os.Args[1]; {
 		case method == "get":
