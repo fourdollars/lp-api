@@ -177,6 +177,20 @@ func do_process(client *http.Client, req *http.Request) (string, error) {
 	return payload, nil
 }
 
+func lp_delete(resource string) (string, error) {
+	var credential = get_credential()
+	if *debug {
+		log.Print("DELETE ", resource)
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("DELETE", lpAPI+resource, nil)
+	if err != nil {
+		return "", err
+	}
+	set_auth_header(&req.Header, credential)
+	return do_process(client, req)
+}
+
 func lp_get(resource string, args []string) (string, error) {
 	var credential = get_credential()
 	if *debug {
@@ -289,6 +303,12 @@ func main() {
 	}
 
 	switch method := args[0]; {
+	case method == "delete":
+		payload, err := lp_delete(args[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(payload)
 	case method == "get":
 		payload, err := lp_get(args[1], args[2:])
 		if err != nil {
@@ -312,7 +332,7 @@ func main() {
 	case method == "download":
 		fmt.Printf("%s is not implemented yet.\n", method)
 	default:
-		fmt.Printf("%s is not supported.\n", method)
+		fmt.Printf("'%s' method is not supported.\n", method)
 		os.Exit(1)
 	}
 }
