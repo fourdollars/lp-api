@@ -7,11 +7,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pelletier/go-toml/v2"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -206,6 +208,36 @@ func lp_get(resource string, args []string) (string, error) {
 	return do_process(client, req)
 }
 
+func lp_download(fileUrl string) (string, int64, error) {
+	var credential = get_credential()
+	if *debug {
+		log.Print("DOWNLOAD ", fileUrl)
+	}
+	_, err := url.Parse(fileUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	filename := path.Base(fileUrl)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", strings.Replace(fileUrl, "https://launchpad.net/", lpAPI, 1), nil)
+	if err != nil {
+		return filename, 0, err
+	}
+	set_auth_header(&req.Header, credential)
+	resp, err := client.Do(req)
+	if err != nil {
+		return filename, 0, err
+	}
+	defer resp.Body.Close()
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	size, err := io.Copy(file, resp.Body)
+	return filename, size, err
+}
+
 func lp_patch(resource string, args []string) (string, error) {
 	var credential = get_credential()
 	if *debug {
@@ -359,7 +391,11 @@ func main() {
 		}
 		fmt.Println(payload)
 	case method == "download":
-		fmt.Printf("%s is not implemented yet.\n", method)
+		filename, size, err := lp_download(args[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Downloaded %s with %d bytes\n", filename, size)
 	default:
 		fmt.Printf("'%s' method is not supported.\n", method)
 		os.Exit(1)
