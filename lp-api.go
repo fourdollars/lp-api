@@ -336,8 +336,8 @@ func lp_post(resource string, args []string) (string, error) {
 
 var debug = flag.Bool("debug", false, "Show debug messages")
 var help = flag.Bool("help", false, "Show help")
-var staging = flag.Bool("staging", false, "Use the staging Launchpad.")
 var lpAPI = "https://api.launchpad.net/devel/"
+var staging = flag.Bool("staging", false, "Use Launchpad staging server.")
 
 func main() {
 	flag.Parse()
@@ -350,11 +350,11 @@ func main() {
 	}
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Println("Usage: lp-api {get,patch,put,post} resource, such as `lp-api get people/+me` or `lp-api get bugs/1`.\n\tPlease check https://api.launchpad.net/devel.html for details.")
+		fmt.Println("Usage: lp-api {get,patch,put,post,delete} resource, such as `lp-api get people/+me` or `lp-api get bugs/1`.\n\tPlease check https://api.launchpad.net/devel.html for details.")
 		flag.Usage()
 		os.Exit(0)
 	} else if len(args) == 1 {
-		fmt.Println("Usage: lp-api {get,patch,put,post} resource, such as `lp-api get people/+me` or `lp-api get bugs/1`.\n\tPlease check https://api.launchpad.net/devel.html for details.")
+		fmt.Println("Usage: lp-api {get,patch,put,post,delete} resource, such as `lp-api get people/+me` or `lp-api get bugs/1`.\n\tPlease check https://api.launchpad.net/devel.html for details.")
 		flag.Usage()
 		os.Exit(1)
 	}
