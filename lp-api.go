@@ -334,6 +334,33 @@ func lp_post(resource string, args []string) (string, error) {
 	return do_process(client, req)
 }
 
+func lp_pipe(node string) (string, error) {
+	bytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return "", err
+	}
+	var v map[string]interface{}
+	json.Unmarshal(bytes, &v)
+	if v[node] == nil {
+		return "", errors.New("There is no such '" + node + "' key.")
+	}
+	var credential = get_credential()
+	if *debug {
+		log.Print("PIPE ", v[node])
+	}
+	apiUrl, ok := v[node].(string)
+	if !ok {
+		return "", errors.New("The value of '" + node + "' key is not string.")
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", apiUrl, nil)
+	if err != nil {
+		return "", err
+	}
+	set_auth_header(&req.Header, credential)
+	return do_process(client, req)
+}
+
 var debug = flag.Bool("debug", false, "Show debug messages")
 var help = flag.Bool("help", false, "Show help")
 var lpAPI = "https://api.launchpad.net/devel/"
@@ -396,6 +423,12 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("Downloaded %s with %d bytes\n", filename, size)
+	case method == "pipe":
+		payload, err := lp_pipe(args[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(payload)
 	default:
 		fmt.Printf("'%s' method is not supported.\n", method)
 		os.Exit(1)
