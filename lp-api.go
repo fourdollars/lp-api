@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -133,24 +135,25 @@ func set_auth_header(header *http.Header, credential Credential) {
 	header.Add("Authorization", auth)
 }
 
-func lp_get(resource string, args []string) (string, error) {
-	var credential = get_credential()
-	if *debug {
-		log.Print("GET ", resource, " ", args)
-	}
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", lpAPI+resource, nil)
-	set_auth_header(&req.Header, credential)
+func query_process(req *http.Request, args []string) {
 	if len(args) > 0 {
 		q := req.URL.Query()
 		for _, arg := range args {
-			fields := strings.Split(arg, "=")
+			fields := strings.Split(arg, "==")
 			key := fields[0]
-			value := strings.Join(fields[1:], "=")
-			q.Add(key, value)
+			value := strings.Join(fields[1:], "==")
+			if len(key) > 0 && !strings.Contains(key, "=") {
+				q.Add(key, value)
+			}
 		}
 		req.URL.RawQuery = q.Encode()
+		if *debug {
+			log.Print("Query: ", req.URL.RawQuery)
+		}
 	}
+}
+
+func do_process(client *http.Client, req *http.Request) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -174,6 +177,61 @@ func lp_get(resource string, args []string) (string, error) {
 	return payload, nil
 }
 
+func lp_get(resource string, args []string) (string, error) {
+	var credential = get_credential()
+	if *debug {
+		log.Print("GET ", resource, " ", args)
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", lpAPI+resource, nil)
+	if err != nil {
+		return "", err
+	}
+	set_auth_header(&req.Header, credential)
+	query_process(req, args)
+	return do_process(client, req)
+}
+
+func lp_patch(resource string, args []string) (string, error) {
+	var credential = get_credential()
+	if *debug {
+		log.Print("PATCH ", resource, " ", args)
+	}
+	data := make(map[string]interface{})
+	if len(args) > 0 {
+		for _, arg := range args {
+			fields := strings.Split(arg, ":=")
+			key := fields[0]
+			value := strings.Join(fields[1:], ":=")
+			if len(key) > 0 && !strings.Contains(key, "=") {
+				if json.Valid([]byte(value)) {
+					var v interface{}
+					json.Unmarshal([]byte(value), &v)
+					data[key] = v
+				} else {
+					log.Fatal("Invalid JSON input: " + value)
+				}
+			}
+		}
+	}
+	payload, err := json.Marshal(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if *debug {
+		log.Print("JSON: ", string(payload))
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("PATCH", lpAPI+resource, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	set_auth_header(&req.Header, credential)
+	query_process(req, args)
+	return do_process(client, req)
+}
+
 func lp_post(resource string, args []string) (string, error) {
 	var credential = get_credential()
 	if *debug {
@@ -184,34 +242,25 @@ func lp_post(resource string, args []string) (string, error) {
 		for _, arg := range args {
 			fields := strings.Split(arg, "=")
 			key := fields[0]
+			key_last := strings.Split(key, "")[len(key)-1]
 			value := strings.Join(fields[1:], "=")
-			data.Set(key, value)
+			value_first := strings.Split(value, "")[0]
+			if len(value) > 0 && value_first != "=" && key_last != ":" {
+				data.Set(key, value)
+			}
 		}
+	}
+	if *debug {
+		log.Print("Body: ", data.Encode())
 	}
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", lpAPI+resource, strings.NewReader(data.Encode()))
+	if err != nil {
+		return "", err
+	}
+	query_process(req, args)
 	set_auth_header(&req.Header, credential)
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	payload := string(body)
-	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
-	if !statusOK {
-		var msg string
-		if strings.HasPrefix(payload, "Expired token") {
-			msg = payload + "\nPlease remove ~/.config/lp-api.toml to try iy again."
-		} else {
-			msg = strconv.Itoa(resp.StatusCode) + " " + http.StatusText(resp.StatusCode) + "\n" + payload
-		}
-		return payload, errors.New(msg)
-	}
-	return payload, nil
+	return do_process(client, req)
 }
 
 var debug = flag.Bool("debug", false, "Show debug messages")
@@ -247,7 +296,11 @@ func main() {
 		}
 		fmt.Println(payload)
 	case method == "patch":
-		fmt.Printf("%s is not implemented yet.\n", method)
+		payload, err := lp_patch(args[1], args[2:])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(payload)
 	case method == "put":
 		fmt.Printf("%s is not implemented yet.\n", method)
 	case method == "post":
