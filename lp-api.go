@@ -380,7 +380,7 @@ func main() {
 		fmt.Println("Usage: lp-api {get,patch,put,post,delete} resource, such as `lp-api get people/+me` or `lp-api get bugs/1`.\n\tPlease check https://api.launchpad.net/devel.html for details.")
 		flag.Usage()
 		os.Exit(0)
-	} else if len(args) == 1 {
+	} else if len(args) == 1 && !strings.HasPrefix(args[0], ".") {
 		fmt.Println("Usage: lp-api {get,patch,put,post,delete} resource, such as `lp-api get people/+me` or `lp-api get bugs/1`.\n\tPlease check https://api.launchpad.net/devel.html for details.")
 		flag.Usage()
 		os.Exit(1)
@@ -423,8 +423,8 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("Downloaded %s with %d bytes\n", filename, size)
-	case method == "pipe":
-		payload, err := lp_pipe(args[1])
+	case strings.HasPrefix(method, ".") && len(args) == 1:
+		payload, err := lp_pipe(args[0][1:])
 		if err != nil {
 			log.Fatal(err)
 		}
