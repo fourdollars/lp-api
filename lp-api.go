@@ -134,16 +134,20 @@ func (c *Credential) GetCredential() error {
 	return nil
 }
 
-func set_auth_header(header *http.Header, credential Credential) {
+type LaunchpadAPI struct {
+	Credential Credential
+}
+
+func (lp LaunchpadAPI) SetAuthHeader(header *http.Header) {
 	var timestamp = time.Now().Unix()
-	var auth = fmt.Sprintf("OAuth realm=\"https://api.launchpad.net/\", oauth_consumer_key=\"%s\", oauth_token=\"%s\", oauth_signature=\"&%s\", oauth_nonce=\"%d\", oauth_signature_method=\"PLAINTEXT\", oauth_timestamp=\"%d\", oauth_version=\"1.0\"", credential.Key, credential.Token, credential.Secret, timestamp, timestamp)
+	var auth = fmt.Sprintf("OAuth realm=\"https://api.launchpad.net/\", oauth_consumer_key=\"%s\", oauth_token=\"%s\", oauth_signature=\"&%s\", oauth_nonce=\"%d\", oauth_signature_method=\"PLAINTEXT\", oauth_timestamp=\"%d\", oauth_version=\"1.0\"", lp.Credential.Key, lp.Credential.Token, lp.Credential.Secret, timestamp, timestamp)
 	if *debug {
 		log.Print(auth)
 	}
 	header.Add("Authorization", auth)
 }
 
-func query_process(req *http.Request, args []string) {
+func (lp LaunchpadAPI) QueryProcess(req *http.Request, args []string) {
 	if len(args) > 0 {
 		q := req.URL.Query()
 		for _, arg := range args {
@@ -161,7 +165,7 @@ func query_process(req *http.Request, args []string) {
 	}
 }
 
-func do_process(client *http.Client, req *http.Request) (string, error) {
+func (lp LaunchpadAPI) DoProcess(client *http.Client, req *http.Request) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -185,12 +189,13 @@ func do_process(client *http.Client, req *http.Request) (string, error) {
 	return payload, nil
 }
 
-func lp_delete(resource string) (string, error) {
+func (lp *LaunchpadAPI) Delete(resource string) (string, error) {
 	c := Credential{}
 	err := c.GetCredential()
 	if err != nil {
 		return "", err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("DELETE ", resource)
 	}
@@ -199,16 +204,17 @@ func lp_delete(resource string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	set_auth_header(&req.Header, c)
-	return do_process(client, req)
+	lp.SetAuthHeader(&req.Header)
+	return lp.DoProcess(client, req)
 }
 
-func lp_get(resource string, args []string) (string, error) {
+func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
 	c := Credential{}
 	err := c.GetCredential()
 	if err != nil {
 		return "", err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("GET ", resource, " ", args)
 	}
@@ -217,17 +223,18 @@ func lp_get(resource string, args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	set_auth_header(&req.Header, c)
-	query_process(req, args)
-	return do_process(client, req)
+	lp.SetAuthHeader(&req.Header)
+	lp.QueryProcess(req, args)
+	return lp.DoProcess(client, req)
 }
 
-func lp_download(fileUrl string) (string, int64, error) {
+func (lp *LaunchpadAPI) Download(fileUrl string) (string, int64, error) {
 	c := Credential{}
 	err := c.GetCredential()
 	if err != nil {
 		return "", 0, err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("DOWNLOAD ", fileUrl)
 	}
@@ -241,7 +248,7 @@ func lp_download(fileUrl string) (string, int64, error) {
 	if err != nil {
 		return filename, 0, err
 	}
-	set_auth_header(&req.Header, c)
+	lp.SetAuthHeader(&req.Header)
 	resp, err := client.Do(req)
 	if err != nil {
 		return filename, 0, err
@@ -256,12 +263,13 @@ func lp_download(fileUrl string) (string, int64, error) {
 	return filename, size, err
 }
 
-func lp_patch(resource string, args []string) (string, error) {
+func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
 	c := Credential{}
 	err := c.GetCredential()
 	if err != nil {
 		return "", err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("PATCH ", resource, " ", args)
 	}
@@ -295,17 +303,18 @@ func lp_patch(resource string, args []string) (string, error) {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	set_auth_header(&req.Header, c)
-	query_process(req, args)
-	return do_process(client, req)
+	lp.SetAuthHeader(&req.Header)
+	lp.QueryProcess(req, args)
+	return lp.DoProcess(client, req)
 }
 
-func lp_put(resource string, jsonFile string) (string, error) {
+func (lp *LaunchpadAPI) Put(resource string, jsonFile string) (string, error) {
 	c := Credential{}
 	err := c.GetCredential()
 	if err != nil {
 		return "", err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("PUT ", resource, " ", jsonFile)
 	}
@@ -325,16 +334,17 @@ func lp_put(resource string, jsonFile string) (string, error) {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	set_auth_header(&req.Header, c)
-	return do_process(client, req)
+	lp.SetAuthHeader(&req.Header)
+	return lp.DoProcess(client, req)
 }
 
-func lp_post(resource string, args []string) (string, error) {
+func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
 	c := Credential{}
 	err := c.GetCredential()
 	if err != nil {
 		return "", err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("POST ", resource, " ", args)
 	}
@@ -359,12 +369,12 @@ func lp_post(resource string, args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	query_process(req, args)
-	set_auth_header(&req.Header, c)
-	return do_process(client, req)
+	lp.QueryProcess(req, args)
+	lp.SetAuthHeader(&req.Header)
+	return lp.DoProcess(client, req)
 }
 
-func lp_pipe(node string) (string, error) {
+func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
 	bytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return "", err
@@ -379,6 +389,7 @@ func lp_pipe(node string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	lp.Credential = c
 	if *debug {
 		log.Print("PIPE ", v[node])
 	}
@@ -391,8 +402,8 @@ func lp_pipe(node string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	set_auth_header(&req.Header, c)
-	return do_process(client, req)
+	lp.SetAuthHeader(&req.Header)
+	return lp.DoProcess(client, req)
 }
 
 var debug = flag.Bool("debug", false, "Show debug messages")
@@ -420,45 +431,46 @@ func main() {
 		os.Exit(1)
 	}
 
+	lp := LaunchpadAPI{}
 	switch method := args[0]; {
 	case method == "delete":
-		payload, err := lp_delete(args[1])
+		payload, err := lp.Delete(args[1])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "get":
-		payload, err := lp_get(args[1], args[2:])
+		payload, err := lp.Get(args[1], args[2:])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "patch":
-		payload, err := lp_patch(args[1], args[2:])
+		payload, err := lp.Patch(args[1], args[2:])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "put":
-		payload, err := lp_put(args[1], args[2])
+		payload, err := lp.Put(args[1], args[2])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "post":
-		payload, err := lp_post(args[1], args[2:])
+		payload, err := lp.Post(args[1], args[2:])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "download":
-		filename, size, err := lp_download(args[1])
+		filename, size, err := lp.Download(args[1])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Printf("Downloaded %s with %d bytes\n", filename, size)
 	case strings.HasPrefix(method, ".") && len(args) == 1:
-		payload, err := lp_pipe(args[0][1:])
+		payload, err := lp.Pipe(args[0][1:])
 		if err != nil {
 			log.Fatal(err)
 		}
