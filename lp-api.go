@@ -25,21 +25,21 @@ type Credential struct {
 	Secret string `toml:"oauth_token_secret"`
 }
 
-func request_token() (string, string) {
+func (c *Credential) RequestToken(key string) error {
 	resp, err := http.PostForm("https://launchpad.net/+request-token",
 		url.Values{
-			"oauth_consumer_key":     {"System-wide: golang (https://github.com/fourdollars/lp-api)"},
+			"oauth_consumer_key":     {key},
 			"oauth_signature_method": {"PLAINTEXT"},
 			"oauth_signature":        {"&"},
 		},
 	)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	mesg := string(body)
 	if *debug {
@@ -47,93 +47,99 @@ func request_token() (string, string) {
 	}
 	m, err := url.ParseQuery(mesg)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	return m["oauth_token"][0], m["oauth_token_secret"][0]
+	c.Key = key
+	c.Token = m["oauth_token"][0]
+	c.Secret = m["oauth_token_secret"][0]
+	return nil
 }
 
-func access_token(oauth_token string, oauth_token_secret string) (Credential, error) {
+func (c *Credential) AccessToken() error {
 again:
 	time.Sleep(time.Second)
 	resp, err := http.PostForm("https://launchpad.net/+access-token",
 		url.Values{
-			"oauth_token":            {oauth_token},
-			"oauth_consumer_key":     {"System-wide: golang (https://github.com/fourdollars/lp-api)"},
+			"oauth_token":            {c.Token},
+			"oauth_consumer_key":     {c.Key},
 			"oauth_signature_method": {"PLAINTEXT"},
-			"oauth_signature":        {"&" + oauth_token_secret},
+			"oauth_signature":        {"&" + c.Secret},
 		},
 	)
 	if err != nil {
-		return Credential{}, err
+		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Credential{}, err
+		return err
 	}
 	mesg := string(body)
 	if mesg == "Request token has not yet been reviewed. Try again later." {
 		goto again
 	} else if mesg == "End-user refused to authorize request token." {
-		return Credential{}, errors.New(mesg)
+		return errors.New(mesg)
 	}
 	if *debug {
 		log.Print(mesg)
 	}
 	m, err := url.ParseQuery(mesg)
 	if err != nil {
-		return Credential{}, err
+		return err
 	}
-	return Credential{
-		Key:    "System-wide: golang (https://github.com/fourdollars/lp-api)",
-		Token:  m["oauth_token"][0],
-		Secret: m["oauth_token_secret"][0],
-	}, nil
+	c.Token = m["oauth_token"][0]
+	c.Secret = m["oauth_token_secret"][0]
+	return nil
 }
 
-func get_credential() Credential {
-	var credential Credential
+func (c *Credential) GetCredential() error {
 	conf := os.Getenv("HOME") + "/.config/lp-api.toml"
 	if _, err := os.Stat(conf); os.IsNotExist(err) {
-		oauth_token, oauth_token_secret := request_token()
-		log.Print(fmt.Sprintf("Please open https://launchpad.net/+authorize-token?oauth_token=%s&allow_permission=DESKTOP_INTEGRATION to authorize the token.", oauth_token))
-		credential, err = access_token(oauth_token, oauth_token_secret)
+		err = c.RequestToken("System-wide: golang (https://github.com/fourdollars/lp-api)")
 		if err != nil {
-			panic(err)
+			return err
 		}
-		bytes, err := toml.Marshal(&credential)
+		log.Print(fmt.Sprintf("Please open https://launchpad.net/+authorize-token?oauth_token=%s&allow_permission=DESKTOP_INTEGRATION to authorize the token.", c.Token))
+		err = c.AccessToken()
 		if err != nil {
-			panic(err)
+			return err
+		}
+		bytes, err := toml.Marshal(&c)
+		if err != nil {
+			return err
 		}
 		fp, err := os.Create(conf)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer fp.Close()
 		_, err = fp.Write(bytes)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		fp.Sync()
 	} else {
 		data, err := os.ReadFile(conf)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		err = toml.Unmarshal([]byte(data), &credential)
+		err = toml.Unmarshal([]byte(data), &c)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		if *debug {
-			log.Print("Found " + credential.Key + " " + credential.Token)
+			log.Print("Found " + c.Key + " " + c.Token)
 		}
 	}
-	return credential
+	return nil
 }
 
 func set_auth_header(header *http.Header, credential Credential) {
 	var timestamp = time.Now().Unix()
 	var auth = fmt.Sprintf("OAuth realm=\"https://api.launchpad.net/\", oauth_consumer_key=\"%s\", oauth_token=\"%s\", oauth_signature=\"&%s\", oauth_nonce=\"%d\", oauth_signature_method=\"PLAINTEXT\", oauth_timestamp=\"%d\", oauth_version=\"1.0\"", credential.Key, credential.Token, credential.Secret, timestamp, timestamp)
+	if *debug {
+		log.Print(auth)
+	}
 	header.Add("Authorization", auth)
 }
 
@@ -170,7 +176,7 @@ func do_process(client *http.Client, req *http.Request) (string, error) {
 	if !statusOK {
 		var msg string
 		if strings.HasPrefix(payload, "Expired token") {
-			msg = payload + "\nPlease remove ~/.config/lp-api.toml to try iy again."
+			msg = payload + "\nPlease remove ~/.config/lp-api.toml if it exists and try it again."
 		} else {
 			msg = strconv.Itoa(resp.StatusCode) + " " + http.StatusText(resp.StatusCode) + "\n" + payload
 		}
@@ -180,7 +186,11 @@ func do_process(client *http.Client, req *http.Request) (string, error) {
 }
 
 func lp_delete(resource string) (string, error) {
-	var credential = get_credential()
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		return "", err
+	}
 	if *debug {
 		log.Print("DELETE ", resource)
 	}
@@ -189,12 +199,16 @@ func lp_delete(resource string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	return do_process(client, req)
 }
 
 func lp_get(resource string, args []string) (string, error) {
-	var credential = get_credential()
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		return "", err
+	}
 	if *debug {
 		log.Print("GET ", resource, " ", args)
 	}
@@ -203,17 +217,21 @@ func lp_get(resource string, args []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	query_process(req, args)
 	return do_process(client, req)
 }
 
 func lp_download(fileUrl string) (string, int64, error) {
-	var credential = get_credential()
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		return "", 0, err
+	}
 	if *debug {
 		log.Print("DOWNLOAD ", fileUrl)
 	}
-	_, err := url.Parse(fileUrl)
+	_, err = url.Parse(fileUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -223,7 +241,7 @@ func lp_download(fileUrl string) (string, int64, error) {
 	if err != nil {
 		return filename, 0, err
 	}
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	resp, err := client.Do(req)
 	if err != nil {
 		return filename, 0, err
@@ -239,7 +257,11 @@ func lp_download(fileUrl string) (string, int64, error) {
 }
 
 func lp_patch(resource string, args []string) (string, error) {
-	var credential = get_credential()
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		return "", err
+	}
 	if *debug {
 		log.Print("PATCH ", resource, " ", args)
 	}
@@ -273,13 +295,17 @@ func lp_patch(resource string, args []string) (string, error) {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	query_process(req, args)
 	return do_process(client, req)
 }
 
 func lp_put(resource string, jsonFile string) (string, error) {
-	var credential = get_credential()
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		return "", err
+	}
 	if *debug {
 		log.Print("PUT ", resource, " ", jsonFile)
 	}
@@ -299,12 +325,16 @@ func lp_put(resource string, jsonFile string) (string, error) {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	return do_process(client, req)
 }
 
 func lp_post(resource string, args []string) (string, error) {
-	var credential = get_credential()
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		return "", err
+	}
 	if *debug {
 		log.Print("POST ", resource, " ", args)
 	}
@@ -330,7 +360,7 @@ func lp_post(resource string, args []string) (string, error) {
 		return "", err
 	}
 	query_process(req, args)
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	return do_process(client, req)
 }
 
@@ -344,7 +374,11 @@ func lp_pipe(node string) (string, error) {
 	if v[node] == nil {
 		return "", errors.New("There is no such '" + node + "' key.")
 	}
-	var credential = get_credential()
+	c := Credential{}
+	err = c.GetCredential()
+	if err != nil {
+		return "", err
+	}
 	if *debug {
 		log.Print("PIPE ", v[node])
 	}
@@ -357,7 +391,7 @@ func lp_pipe(node string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	set_auth_header(&req.Header, credential)
+	set_auth_header(&req.Header, c)
 	return do_process(client, req)
 }
 
