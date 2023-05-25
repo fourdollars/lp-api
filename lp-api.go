@@ -93,8 +93,7 @@ again:
 }
 
 func (c *Credential) GetCredential() error {
-	conf := os.Getenv("HOME") + "/.config/lp-api.toml"
-	if _, err := os.Stat(conf); os.IsNotExist(err) {
+	if _, err := os.Stat(*conf); os.IsNotExist(err) {
 		err = c.RequestToken("System-wide: golang (https://github.com/fourdollars/lp-api)")
 		if err != nil {
 			return err
@@ -104,28 +103,26 @@ func (c *Credential) GetCredential() error {
 		if err != nil {
 			return err
 		}
-		bytes, err := toml.Marshal(&c)
-		if err != nil {
-			return err
-		}
-		fp, err := os.Create(conf)
+		fp, err := os.Create(*conf)
 		if err != nil {
 			return err
 		}
 		defer fp.Close()
-		_, err = fp.Write(bytes)
+		err = toml.NewEncoder(fp).Encode(&c)
 		if err != nil {
 			return err
 		}
-		fp.Sync()
 	} else {
-		data, err := os.ReadFile(conf)
+		data, err := os.ReadFile(*conf)
 		if err != nil {
 			return err
 		}
 		err = toml.Unmarshal([]byte(data), &c)
 		if err != nil {
 			return err
+		}
+		if c.Secret == "" {
+			return errors.New("Read " + *conf + " failed.")
 		}
 		if *debug {
 			log.Print("Found " + c.Key + " " + c.Token)
@@ -407,6 +404,7 @@ func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
 }
 
 var debug = flag.Bool("debug", false, "Show debug messages")
+var conf = flag.String("conf", os.Getenv("HOME")+"/.config/lp-api.toml", "Specify the Launchpad API config file.")
 var help = flag.Bool("help", false, "Show help")
 var lpAPI = "https://api.launchpad.net/devel/"
 var staging = flag.Bool("staging", false, "Use Launchpad staging server.")
