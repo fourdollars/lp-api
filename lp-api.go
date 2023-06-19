@@ -190,12 +190,6 @@ func (lp LaunchpadAPI) DoProcess(req *http.Request) (string, error) {
 }
 
 func (lp *LaunchpadAPI) Delete(resource string) (string, error) {
-	c := Credential{}
-	err := c.GetCredential()
-	if err != nil {
-		return "", err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("DELETE ", resource)
 	}
@@ -208,12 +202,6 @@ func (lp *LaunchpadAPI) Delete(resource string) (string, error) {
 }
 
 func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
-	c := Credential{}
-	err := c.GetCredential()
-	if err != nil {
-		return "", err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("GET ", resource, " ", args)
 	}
@@ -227,16 +215,10 @@ func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
 }
 
 func (lp *LaunchpadAPI) Download(fileUrl string) (string, int64, error) {
-	c := Credential{}
-	err := c.GetCredential()
-	if err != nil {
-		return "", 0, err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("DOWNLOAD ", fileUrl)
 	}
-	_, err = url.Parse(fileUrl)
+	_, err := url.Parse(fileUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -262,12 +244,6 @@ func (lp *LaunchpadAPI) Download(fileUrl string) (string, int64, error) {
 }
 
 func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
-	c := Credential{}
-	err := c.GetCredential()
-	if err != nil {
-		return "", err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("PATCH ", resource, " ", args)
 	}
@@ -306,12 +282,6 @@ func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
 }
 
 func (lp *LaunchpadAPI) Put(resource string, jsonFile string) (string, error) {
-	c := Credential{}
-	err := c.GetCredential()
-	if err != nil {
-		return "", err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("PUT ", resource, " ", jsonFile)
 	}
@@ -335,12 +305,6 @@ func (lp *LaunchpadAPI) Put(resource string, jsonFile string) (string, error) {
 }
 
 func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
-	c := Credential{}
-	err := c.GetCredential()
-	if err != nil {
-		return "", err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("POST ", resource, " ", args)
 	}
@@ -379,12 +343,6 @@ func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
 	if v[node] == nil {
 		return "", errors.New("There is no such '" + node + "' key.")
 	}
-	c := Credential{}
-	err = c.GetCredential()
-	if err != nil {
-		return "", err
-	}
-	lp.Credential = c
 	if *debug {
 		log.Print("PIPE ", v[node])
 	}
@@ -427,6 +385,12 @@ func main() {
 	}
 
 	lp := LaunchpadAPI{}
+	c := Credential{}
+	err := c.GetCredential()
+	if err != nil {
+		log.Fatal(err)
+	}
+	lp.Credential = c
 	switch method := args[0]; {
 	case method == "delete":
 		payload, err := lp.Delete(args[1])
