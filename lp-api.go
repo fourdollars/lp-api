@@ -162,7 +162,10 @@ func (lp LaunchpadAPI) QueryProcess(req *http.Request, args []string) {
 	}
 }
 
-func (lp LaunchpadAPI) DoProcess(client *http.Client, req *http.Request) (string, error) {
+func (lp LaunchpadAPI) DoProcess(req *http.Request) (string, error) {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -196,13 +199,12 @@ func (lp *LaunchpadAPI) Delete(resource string) (string, error) {
 	if *debug {
 		log.Print("DELETE ", resource)
 	}
-	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", lpAPI+resource, nil)
 	if err != nil {
 		return "", err
 	}
 	lp.SetAuthHeader(&req.Header)
-	return lp.DoProcess(client, req)
+	return lp.DoProcess(req)
 }
 
 func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
@@ -215,14 +217,13 @@ func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("GET ", resource, " ", args)
 	}
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", lpAPI+resource, nil)
 	if err != nil {
 		return "", err
 	}
 	lp.SetAuthHeader(&req.Header)
 	lp.QueryProcess(req, args)
-	return lp.DoProcess(client, req)
+	return lp.DoProcess(req)
 }
 
 func (lp *LaunchpadAPI) Download(fileUrl string) (string, int64, error) {
@@ -294,7 +295,6 @@ func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("JSON: ", string(payload))
 	}
-	client := &http.Client{}
 	req, err := http.NewRequest("PATCH", lpAPI+resource, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
@@ -302,7 +302,7 @@ func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	lp.SetAuthHeader(&req.Header)
 	lp.QueryProcess(req, args)
-	return lp.DoProcess(client, req)
+	return lp.DoProcess(req)
 }
 
 func (lp *LaunchpadAPI) Put(resource string, jsonFile string) (string, error) {
@@ -325,14 +325,13 @@ func (lp *LaunchpadAPI) Put(resource string, jsonFile string) (string, error) {
 	if *debug {
 		log.Print("JSON: ", string(payload))
 	}
-	client := &http.Client{}
 	req, err := http.NewRequest("PUT", lpAPI+resource, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	lp.SetAuthHeader(&req.Header)
-	return lp.DoProcess(client, req)
+	return lp.DoProcess(req)
 }
 
 func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
@@ -361,14 +360,13 @@ func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("Body: ", data.Encode())
 	}
-	client := &http.Client{}
 	req, err := http.NewRequest("POST", lpAPI+resource, strings.NewReader(data.Encode()))
 	if err != nil {
 		return "", err
 	}
 	lp.QueryProcess(req, args)
 	lp.SetAuthHeader(&req.Header)
-	return lp.DoProcess(client, req)
+	return lp.DoProcess(req)
 }
 
 func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
@@ -394,13 +392,12 @@ func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
 	if !ok {
 		return "", errors.New("The value of '" + node + "' key is not string.")
 	}
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		return "", err
 	}
 	lp.SetAuthHeader(&req.Header)
-	return lp.DoProcess(client, req)
+	return lp.DoProcess(req)
 }
 
 var debug = flag.Bool("debug", false, "Show debug messages")
