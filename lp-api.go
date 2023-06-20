@@ -25,10 +25,10 @@ type Credential struct {
 	Secret string `toml:"oauth_token_secret"`
 }
 
-func (c *Credential) RequestToken(key string) error {
+func (c *Credential) RequestToken(oauth_consumer_key string) error {
 	resp, err := http.PostForm("https://launchpad.net/+request-token",
 		url.Values{
-			"oauth_consumer_key":     {key},
+			"oauth_consumer_key":     {oauth_consumer_key},
 			"oauth_signature_method": {"PLAINTEXT"},
 			"oauth_signature":        {"&"},
 		},
@@ -49,7 +49,7 @@ func (c *Credential) RequestToken(key string) error {
 	if err != nil {
 		return err
 	}
-	c.Key = key
+	c.Key = oauth_consumer_key
 	c.Token = m["oauth_token"][0]
 	c.Secret = m["oauth_token_secret"][0]
 	return nil
@@ -94,11 +94,15 @@ again:
 
 func (c *Credential) GetCredential() error {
 	if _, err := os.Stat(*conf); os.IsNotExist(err) {
-		err = c.RequestToken("System-wide: golang (https://github.com/fourdollars/lp-api)")
+		err = c.RequestToken(*key)
 		if err != nil {
 			return err
 		}
-		log.Print(fmt.Sprintf("Please open https://launchpad.net/+authorize-token?oauth_token=%s&allow_permission=DESKTOP_INTEGRATION to authorize the token.", c.Token))
+		if strings.HasPrefix(*key, "System-wide: ") {
+			log.Print(fmt.Sprintf("Please open https://launchpad.net/+authorize-token?oauth_token=%s&allow_permission=DESKTOP_INTEGRATION to authorize the token.", c.Token))
+		} else {
+			log.Print(fmt.Sprintf("Please open https://launchpad.net/+authorize-token?oauth_token=%s to authorize the token.", c.Token))
+		}
 		err = c.AccessToken()
 		if err != nil {
 			return err
@@ -358,9 +362,10 @@ func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
 	return lp.DoProcess(req)
 }
 
-var debug = flag.Bool("debug", false, "Show debug messages")
 var conf = flag.String("conf", os.Getenv("HOME")+"/.config/lp-api.toml", "Specify the Launchpad API config file.")
+var debug = flag.Bool("debug", false, "Show debug messages")
 var help = flag.Bool("help", false, "Show help")
+var key = flag.String("key", "System-wide: golang (https://github.com/fourdollars/lp-api)", "Specify the OAuth Consumer Key.")
 var lpAPI = "https://api.launchpad.net/devel/"
 var staging = flag.Bool("staging", false, "Use Launchpad staging server.")
 
