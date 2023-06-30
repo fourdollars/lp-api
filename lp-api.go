@@ -93,7 +93,13 @@ again:
 }
 
 func (c *Credential) GetCredential() error {
-	if _, err := os.Stat(*conf); os.IsNotExist(err) {
+	token := os.Getenv("LAUNCHPAD_TOKEN")
+	if token != "" {
+		keys := strings.SplitN(token, ":", 3)
+		c.Key = keys[2]
+		c.Token = keys[0]
+		c.Secret = keys[1]
+	} else if _, err := os.Stat(*conf); os.IsNotExist(err) {
 		err = c.RequestToken(*key)
 		if err != nil {
 			return err
