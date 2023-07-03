@@ -224,7 +224,7 @@ func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
 	return lp.DoProcess(req)
 }
 
-func (lp *LaunchpadAPI) Download(fileUrl string) (string, int64, error) {
+func (lp *LaunchpadAPI) Download(fileUrl string) error {
 	if *debug {
 		log.Print("DOWNLOAD ", fileUrl)
 	}
@@ -236,21 +236,70 @@ func (lp *LaunchpadAPI) Download(fileUrl string) (string, int64, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", strings.Replace(fileUrl, "https://launchpad.net/", lpAPI, 1), nil)
 	if err != nil {
-		return filename, 0, err
+		return err
 	}
 	lp.SetAuthHeader(&req.Header)
 	resp, err := client.Do(req)
 	if err != nil {
-		return filename, 0, err
+		return err
+	}
+	length := int64(0)
+	if len(resp.Header["Content-Length"]) == 1 {
+		length, _ = strconv.ParseInt(resp.Header["Content-Length"][0], 10, 64)
 	}
 	defer resp.Body.Close()
+	done := make(chan int64)
 	file, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if length != 0 {
+		go func(done chan int64, filename string, length int64) {
+			var stop bool = false
+			var prev int64 = 0
+			var begin = time.Now()
+			fmt.Printf("Downloading %s ...\n", filename)
+			file, err := os.Open(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer file.Close()
+			for {
+				select {
+				case <-done:
+					stop = true
+				default:
+					fi, err := file.Stat()
+					if err != nil {
+						log.Fatal(err)
+					}
+					size := fi.Size()
+					if size-prev != 0 {
+						var percent float64 = float64(size) / float64(length) * 100
+						var diff = strconv.FormatInt((length-size)/(size-prev)+1, 10) + "s"
+						var left, _ = time.ParseDuration(diff)
+						fmt.Printf("%.0f%% (%d/%d bytes) about %s left        \r", percent, size, length, left)
+						prev = size
+					}
+				}
+				if stop {
+					var now = time.Now()
+					var diff = now.Sub(begin).Truncate(time.Second)
+					fmt.Printf("%s (%d bytes took %s) is downloaded.        \n", filename, length, diff)
+					break
+				}
+				time.Sleep(time.Second)
+			}
+		}(done, filename, length)
+	}
 	defer file.Close()
 	size, err := io.Copy(file, resp.Body)
-	return filename, size, err
+	if length != 0 {
+		done <- size
+	} else {
+		fmt.Printf("%s (%d bytes) is downloaded.\n", filename, size)
+	}
+	return err
 }
 
 func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
@@ -434,11 +483,10 @@ func main() {
 		}
 		fmt.Println(payload)
 	case method == "download":
-		filename, size, err := lp.Download(args[1])
+		err := lp.Download(args[1])
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Downloaded %s with %d bytes\n", filename, size)
 	case strings.HasPrefix(method, ".") && len(args) == 1:
 		payload, err := lp.Pipe(args[0][1:])
 		if err != nil {
