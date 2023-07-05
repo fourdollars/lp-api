@@ -422,6 +422,7 @@ var debug = flag.Bool("debug", false, "Show debug messages")
 var help = flag.Bool("help", false, "Show help")
 var key = flag.String("key", "System-wide: golang (https://github.com/fourdollars/lp-api)", "Specify the OAuth Consumer Key.")
 var lpAPI = "https://api.launchpad.net/devel/"
+var output = flag.String("output", "", "Specify the output file.")
 var staging = flag.Bool("staging", false, "Use Launchpad staging server.")
 
 func main() {
@@ -451,8 +452,11 @@ func main() {
 		log.Fatal(err)
 	}
 	lp.Credential = c
+
 	var resource string
-	if strings.HasPrefix(args[1], "https://api.launchpad.net/devel/") {
+	if len(args) == 1 {
+		resource = ""
+	} else if strings.HasPrefix(args[1], "https://api.launchpad.net/devel/") {
 		resource = args[1]
 		lpAPI = "https://api.launchpad.net/devel/"
 	} else if strings.HasPrefix(args[1], "https://api.staging.launchpad.net/devel/") {
@@ -461,50 +465,45 @@ func main() {
 	} else {
 		resource = lpAPI + args[1]
 	}
+
+	var payload string
+
 	switch method := args[0]; {
 	case method == "delete":
-		payload, err := lp.Delete(resource)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(payload)
+		payload, err = lp.Delete(resource)
 	case method == "get":
-		payload, err := lp.Get(resource, args[2:])
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(payload)
+		payload, err = lp.Get(resource, args[2:])
 	case method == "patch":
-		payload, err := lp.Patch(resource, args[2:])
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(payload)
+		payload, err = lp.Patch(resource, args[2:])
 	case method == "put":
-		payload, err := lp.Put(resource, args[2])
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(payload)
+		payload, err = lp.Put(resource, args[2])
 	case method == "post":
-		payload, err := lp.Post(resource, args[2:])
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(payload)
+		payload, err = lp.Post(resource, args[2:])
 	case method == "download":
-		err := lp.Download(args[1])
-		if err != nil {
-			log.Fatal(err)
-		}
+		err = lp.Download(args[1])
 	case strings.HasPrefix(method, ".") && len(args) == 1:
-		payload, err := lp.Pipe(args[0][1:])
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(payload)
+		payload, err = lp.Pipe(args[0][1:])
 	default:
 		fmt.Printf("'%s' method is not supported.\n", method)
 		os.Exit(1)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	if *output != "" {
+		if *debug {
+			log.Print("OUTPUT: " + payload)
+		}
+		file, err := os.Create(*output)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		_, err = file.WriteString(payload)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Println(payload)
 	}
 }
