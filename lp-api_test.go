@@ -17,6 +17,9 @@ func Test_get(t *testing.T) {
 }
 
 func Test_put(t *testing.T) {
+	t.Cleanup(func() {
+		os.Remove("payload.json")
+	})
 	backupArgs := os.Args
 
 	os.Args = append(os.Args, "-staging")
@@ -84,6 +87,9 @@ func Test_stagingAPI(t *testing.T) {
 }
 
 func Test_download(t *testing.T) {
+	t.Cleanup(func() {
+		os.Remove("data")
+	})
 	os.Clearenv()
 	os.Setenv("LAUNCHPAD_TOKEN", "::")
 	backupArgs := os.Args
