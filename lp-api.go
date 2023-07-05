@@ -203,7 +203,7 @@ func (lp *LaunchpadAPI) Delete(resource string) (string, error) {
 	if *debug {
 		log.Print("DELETE ", resource)
 	}
-	req, err := http.NewRequest("DELETE", lpAPI+resource, nil)
+	req, err := http.NewRequest("DELETE", resource, nil)
 	if err != nil {
 		return "", err
 	}
@@ -215,7 +215,7 @@ func (lp *LaunchpadAPI) Get(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("GET ", resource, " ", args)
 	}
-	req, err := http.NewRequest("GET", lpAPI+resource, nil)
+	req, err := http.NewRequest("GET", resource, nil)
 	if err != nil {
 		return "", err
 	}
@@ -330,7 +330,7 @@ func (lp *LaunchpadAPI) Patch(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("JSON: ", string(payload))
 	}
-	req, err := http.NewRequest("PATCH", lpAPI+resource, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("PATCH", resource, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
@@ -354,7 +354,7 @@ func (lp *LaunchpadAPI) Put(resource string, jsonFile string) (string, error) {
 	if *debug {
 		log.Print("JSON: ", string(payload))
 	}
-	req, err := http.NewRequest("PUT", lpAPI+resource, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("PUT", resource, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
@@ -383,7 +383,7 @@ func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("Body: ", data.Encode())
 	}
-	req, err := http.NewRequest("POST", lpAPI+resource, strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("POST", resource, strings.NewReader(data.Encode()))
 	if err != nil {
 		return "", err
 	}
@@ -451,33 +451,43 @@ func main() {
 		log.Fatal(err)
 	}
 	lp.Credential = c
+	var resource string
+	if strings.HasPrefix(args[1], "https://api.launchpad.net/devel/") {
+		resource = args[1]
+		lpAPI = "https://api.launchpad.net/devel/"
+	} else if strings.HasPrefix(args[1], "https://api.staging.launchpad.net/devel/") {
+		resource = args[1]
+		lpAPI = "https://api.staging.launchpad.net/devel/"
+	} else {
+		resource = lpAPI + args[1]
+	}
 	switch method := args[0]; {
 	case method == "delete":
-		payload, err := lp.Delete(args[1])
+		payload, err := lp.Delete(resource)
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "get":
-		payload, err := lp.Get(args[1], args[2:])
+		payload, err := lp.Get(resource, args[2:])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "patch":
-		payload, err := lp.Patch(args[1], args[2:])
+		payload, err := lp.Patch(resource, args[2:])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "put":
-		payload, err := lp.Put(args[1], args[2])
+		payload, err := lp.Put(resource, args[2])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(payload)
 	case method == "post":
-		payload, err := lp.Post(args[1], args[2:])
+		payload, err := lp.Post(resource, args[2:])
 		if err != nil {
 			log.Fatal(err)
 		}
