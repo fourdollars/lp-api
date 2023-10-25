@@ -1,0 +1,31 @@
+name: Release prebuilt binary
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  release-linux-amd64:
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-20.04]
+        goos: [linux]
+        goarch: [amd64, arm64]
+    name: release ${{ matrix.os }} ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: wangyoucao577/go-release-action@v1
+      with:
+        github_token: ${{ secrets.SECRET_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        md5sum: false
+        sha256sum: true
+        asset_name: "lp-api-${{github.ref_name}}-${{ matrix.goos }}-${{ matrix.goarch }}-${{ matrix.os }}"
+        ldflags: "-s -w"
