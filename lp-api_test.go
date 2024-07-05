@@ -86,6 +86,20 @@ func Test_stagingAPI(t *testing.T) {
 	os.Args = backupArgs
 }
 
+func Test_timeout10s(t *testing.T) {
+	os.Clearenv()
+	os.Setenv("LAUNCHPAD_TOKEN", "::")
+	backupArgs := os.Args
+
+	os.Args = append(os.Args, "-debug")
+	os.Args = append(os.Args, "-timeout")
+	os.Args = append(os.Args, "10s")
+	os.Args = append(os.Args, "get")
+	os.Args = append(os.Args, "https://api.launchpad.net/devel/bugs/1")
+	main()
+	os.Args = backupArgs
+}
+
 func Test_download(t *testing.T) {
 	t.Cleanup(func() {
 		os.Remove("data")

@@ -174,7 +174,7 @@ func (lp LaunchpadAPI) QueryProcess(req *http.Request, args []string) {
 
 func (lp LaunchpadAPI) DoProcess(req *http.Request) (string, error) {
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: *timeout,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -424,6 +424,7 @@ var key = flag.String("key", "System-wide: golang (https://github.com/fourdollar
 var lpAPI = "https://api.launchpad.net/devel/"
 var output = flag.String("output", "", "Specify the output file.")
 var staging = flag.Bool("staging", false, "Use Launchpad staging server.")
+var timeout = flag.Duration("timeout", 10 * time.Second, "Timeout for Launchpad API requests.")
 
 func main() {
 	flag.Parse()
