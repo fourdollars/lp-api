@@ -19,7 +19,8 @@ Commands:
   resource-methods <id>        List methods for resource_type id
   resource-params <id>         List parameter names for resource_type id
   resource-wsops <id>         List ws.op fixed values for resource_type id
-  template <id> <ws.op>       Print a basic lp-api command template for resource and ws.op
+  template <id> <ws.op>       Print a detailed lp-api command template for resource and ws.op
+  examples <id>               Print ready-to-run example commands for resource's ws.op values
   show-resource <id>          Print the raw WADL section for resource_type id
   -h, --help                  Show this help
 USAGE
