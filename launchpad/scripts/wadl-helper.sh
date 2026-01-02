@@ -106,13 +106,20 @@ USAGE
             section=$(sed -n "/<wadl:param[^>]*name=\"$name\"/,/<\/wadl:param>/p" "$tmp" | tr '\n' ' ')
             doc=$(echo "$section" | grep -oP '<wadl:doc[^>]*>\K.*?(?=</wadl:doc>)' || true)
             doc=$(echo "$doc" | sed 's/<[^>]*>//g' | tr -s ' ' ' ' | sed 's/^ *//;s/ *$//')
-            if [ -z "$doc" ]; then
-                doc="(no doc)"
-            fi
             if [ -z "$required" ]; then
-                required=false
+                label="optional"
+            else
+                if [ "$required" = "true" ]; then
+                    label="mandatory"
+                else
+                    label="optional"
+                fi
             fi
-            echo "  - $name [$required] - $doc"
+            if [ -n "$doc" ]; then
+                echo "  - $name [$label] - $doc"
+            else
+                echo "  - $name [$label]"
+            fi
         done
         rm -f "$tmp"
         ;;
