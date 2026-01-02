@@ -95,6 +95,54 @@ USAGE
         echo "ws.op values:"
         echo "$block" | grep -oP 'name="ws.op"[^>]*fixed="\K[^"]+' | sort -u | sed -e 's/^/  - /' || true
         echo
+        # Show parameters specific to each ws.op
+        # For each ws.op, show methods and parameters with docs
+        wsops=$(echo "$block" | grep -oP 'name="ws.op"[^>]*fixed="\\K[^"]+' | sort -u)
+        if [ -n "$wsops" ]; then
+            for op in $wsops; do
+                echo "ws.op = $op"
+                # try to find method(s) that reference this op
+                methods=$(echo "$block" | grep -oP "<wadl:method[^>]*>[^<]*<.*ws.op.*${op}.*|<wadl:method[^>]*name=\"\K[^"]+" | sort -u || true)
+                # fallback to methods in resource
+                if [ -z "$methods" ]; then
+                    methods=$(echo "$block" | grep -oP "<wadl:method[^>]*name=\"\K[^"]+" | sort -u)
+                fi
+                echo "  Methods: $(echo "$methods" | tr '\n' ' ' )"
+
+                # extract params from request blocks that contain this ws.op
+                reqs=$(echo "$block" | awk -v op="$op" 'BEGIN{RS="<wadl:request"; ORS=""} $0 ~ op {print "<wadl:request" $0}' )
+                if [ -n "$reqs" ]; then
+                    # for each param in reqs, show detailed info
+                    echo "$reqs" | grep -oP '<wadl:param[^>]*name="\K[^"]+' | sort -u | while read -r pname; do
+                        # reuse param extraction from full block
+                        paramtag=$(echo "$block" | grep -oP "<wadl:param[^>]*name=\"$pname\"[^>]*>" | head -n1)
+                        required=$(echo "$paramtag" | grep -oP 'required="\K[^"]+' || true)
+                        section=$(sed -n "/<wadl:param[^>]*name=\"$pname\"/,/<\/wadl:param>/p" <(echo "$block") | tr '\n' ' ')
+                        doc=$(echo "$section" | grep -oP '<wadl:doc[^>]*>\K.*?(?=</wadl:doc>)' || true)
+                        doc=$(echo "$doc" | sed 's/<[^>]*>//g' | tr -s ' ' ' ' | sed 's/^ *//;s/ *$//')
+                        if [ -z "$required" ]; then
+                            label="optional"
+                        else
+                            if [ "$required" = "true" ]; then
+                                label="mandatory"
+                            else
+                                label="optional"
+                            fi
+                        fi
+                        if [ -n "$doc" ]; then
+                            echo "  - $pname [$label]"
+                            echo "      $doc"
+                        else
+                            echo "  - $pname [$label]"
+                        fi
+                    done
+                else
+                    echo "  (no ws.op-specific parameters)"
+                fi
+                echo
+            done
+        fi
+
         echo "Parameters (name [required?] - doc):"
         tmp=$(mktemp)
         echo "$block" > "$tmp"
