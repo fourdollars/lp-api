@@ -91,6 +91,15 @@ lp-api get ubuntu ws.op==searchTasks \
 lp-api get firefox ws.op==searchTasks \
   importance==Critical \
   has_no_assignee==true
+
+# List bugs for linux source package
+lp-api get ubuntu/+source/linux ws.op==searchTasks ws.size==10
+
+# Get recent bugs for a source package with filters
+lp-api get ubuntu/+source/firefox ws.op==searchTasks \
+  status==New \
+  importance==High \
+  ws.size==50
 ```
 
 #### newMessage

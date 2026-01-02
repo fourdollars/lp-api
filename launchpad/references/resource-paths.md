@@ -65,19 +65,17 @@ bugs/<bug-id>/+subscriptions
 
 ### Bug Search Operations
 ```bash
-# Project bugs
-<project>/+bugs
-
-# Distribution bugs
-<distro>/+bugs
-
-# Package bugs
-<distro>/+source/<package-name>/+bugs
-
-# With web service operations (see api-operations.md)
+# Search bugs with web service operations (see api-operations.md)
 <project> ws.op==searchTasks
 ubuntu ws.op==searchTasks tags==focal
 ubuntu/+source/firefox ws.op==searchTasks status==New
+
+# List bugs for a source package (use searchTasks, not +bugs path)
+ubuntu/+source/linux ws.op==searchTasks ws.size==10
+ubuntu/+source/firefox ws.op==searchTasks status==New ws.size==50
+
+# Note: Direct paths like ubuntu/+source/<package>/+bugs return 404
+# Always use ws.op==searchTasks instead
 ```
 
 ## Projects & Products
