@@ -116,7 +116,9 @@ USAGE
                 fi
             fi
             if [ -n "$doc" ]; then
-                echo "  - $name [$label] - $doc"
+                echo "  - $name [$label]"
+                # indent doc on next line
+                echo "      $doc"
             else
                 echo "  - $name [$label]"
             fi
