@@ -143,7 +143,7 @@ USAGE
             done
         fi
 
-        echo "Parameters (name [required?] - doc):"
+        echo "Parameters: name [required?] and doc"
         tmp=$(mktemp)
         echo "$block" > "$tmp"
         params=$(grep -oP '<wadl:param[^>]*name="\K[^"]+' "$tmp" | sort -u)
