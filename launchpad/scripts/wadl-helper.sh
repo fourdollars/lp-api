@@ -8,6 +8,11 @@ if [ ! -f "$WADL_PATH" ]; then
     exit 1
 fi
 
+# If no args provided, show help
+if [ "$#" -eq 0 ]; then
+    set -- -h
+fi
+
 case "$1" in
     -h|--help|help)
         cat <<'USAGE'
