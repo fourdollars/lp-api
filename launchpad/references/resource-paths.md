@@ -113,6 +113,10 @@ debian/bookworm
 # Distribution architectures
 ubuntu/jammy/amd64
 ubuntu/jammy/arm64
+
+# Primary archive (main Ubuntu repository)
+ubuntu/+archive/primary
+debian/+archive/primary
 ```
 
 ### Source Package Resources
@@ -239,8 +243,13 @@ lp-api get ~oem-solutions-group/+archive/ubuntu/intel-ipu6 \
 # Repository refs (branches/tags)
 ~owner/<project>/+git/<repo-name>/+ref/<ref-name>
 
+# Repository recipes (git-build-recipe)
+~owner/<project>/+git/<repo-name>/recipes
+
 # Example
 ~ubuntu-core-dev/ubuntu/+git/ubuntu-seeds
+~oem-solutions-engineers/pc-enablement/+git/oem-jammy-projects-meta
+~oem-solutions-engineers/pc-enablement/+git/oem-jammy-projects-meta/recipes
 ```
 
 ### Bazaar Branches (Legacy)
@@ -341,12 +350,27 @@ Most resources include these link fields (ending in `_link`):
 - `web_link`: Human-readable web URL  
 - `*_collection_link`: Related collection (e.g., `bug_tasks_collection_link`)
 - `*_link`: Related single resource (e.g., `owner_link`, `project_link`)
+- `build_link`: Link to build resource (from publishing history)
+- `changesfile_url`: URL to .changes file (from build resource)
 
 **Following links with lp-api:**
 ```bash
 # Extract link field and query it
 lp-api get bugs/1 | lp-api .bug_tasks_collection_link
 lp-api get ubuntu/+source/firefox | lp-api .owner_link
+
+# Get build information from published binary
+lp-api get ubuntu/+archive/primary \
+  ws.op==getPublishedBinaries \
+  distro_arch_series==https://api.launchpad.net/devel/ubuntu/noble/amd64 \
+  binary_name=="linux-image-unsigned-6.8.0-48-generic" \
+  exact_match==true \
+  order_by_date==true | \
+  jq -r '.entries[0]' | \
+  lp-api .build_link
+
+# Get changes file URL from build
+lp-api get <build-resource> | jq -r .changesfile_url
 ```
 
 ## Constructing Resource Paths

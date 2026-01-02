@@ -248,6 +248,34 @@ lp-api get ~owner/+archive/ubuntu/<ppa> \
   ws.size==300
 ```
 
+**Common Filters:**
+```bash
+# By architecture series
+distro_arch_series==https://api.launchpad.net/devel/ubuntu/noble/amd64
+distro_arch_series==https://api.launchpad.net/devel/ubuntu/jammy/arm64
+
+# By status
+status==Published
+status==Pending
+status==Superseded
+
+# By binary package name
+binary_name==firefox
+exact_match==true  # Exact match for binary_name
+
+# By version
+version==123.0-1ubuntu1
+
+# By pocket
+pocket==Release
+pocket==Updates
+pocket==Security
+pocket==Proposed
+
+# Sorting
+order_by_date==true  # Sort by publication date
+```
+
 **Examples:**
 ```bash
 # List all published binaries for noble amd64
@@ -257,11 +285,32 @@ lp-api get ~owner/+archive/ubuntu/ppa \
   status==Published \
   ws.size==300
 
-# Search for specific binary package
+# Search for specific binary package with exact match
 lp-api get ~owner/+archive/ubuntu/ppa \
   ws.op==getPublishedBinaries \
   binary_name==firefox \
+  exact_match==true \
   status==Published
+
+# Query Ubuntu primary archive for specific kernel version
+lp-api get ubuntu/+archive/primary \
+  ws.op==getPublishedBinaries \
+  distro_arch_series==https://api.launchpad.net/devel/ubuntu/noble/amd64 \
+  status==Published \
+  binary_name=="linux-image-unsigned-6.8.0-48-generic" \
+  exact_match==true \
+  order_by_date==true \
+  version=="6.8.0-48.48"
+
+# Get latest published binary from PPA sorted by date
+lp-api get ~canonical-kernel-team/+archive/ubuntu/proposed2/ \
+  ws.op==getPublishedBinaries \
+  distro_arch_series==https://api.launchpad.net/devel/ubuntu/noble/amd64 \
+  status==Published \
+  pocket==Release \
+  binary_name=="linux-image-unsigned-6.8.0" \
+  order_by_date==true | \
+  jq -r '.entries | map(select(.source_package_name=="linux-oem-6.8")) | .[0]'
 ```
 
 #### copyPackage
@@ -300,6 +349,73 @@ lp-api post ~owner/+archive/ubuntu/<ppa> \
   source_name=<package-name> \
   distro_series=<series-url> \
   pocket=Release
+```
+
+### Git Recipe Operations
+
+#### createRecipe
+Create a git-build-recipe for automated package builds.
+
+**Usage:**
+```bash
+lp-api post ~owner \
+  ws.op=createRecipe \
+  build_daily=true \
+  daily_build_archive=<archive-url> \
+  description="<description>" \
+  distroseries=<series-url> \
+  name="<recipe-name>" \
+  recipe_text="<recipe-content>"
+```
+
+**Example:**
+```bash
+# Create a recipe for daily builds
+cat > /tmp/recipe.txt <<'EOF'
+# git-build-recipe format 0.4 deb-version {debversion}~{revtime}git{git-commit}
+lp:~oem-solutions-engineers/pc-enablement/+git/oem-jammy-projects-meta jammy
+EOF
+
+lp-api post ~oem-solutions-engineers \
+  ws.op=createRecipe \
+  build_daily=true \
+  daily_build_archive=https://api.launchpad.net/devel/~oem-solutions-engineers/+archive/ubuntu/oem-projects-meta \
+  description="OEM Jammy Projects Meta Daily Build" \
+  distroseries=https://api.launchpad.net/devel/ubuntu/jammy \
+  name="oem-jammy-projects-meta-daily" \
+  recipe_text="$(jq -sR < /tmp/recipe.txt)"
+```
+
+#### performDailyBuild
+Trigger a daily build for a recipe.
+
+**Usage:**
+```bash
+lp-api post <recipe-resource> ws.op=performDailyBuild
+```
+
+**Example:**
+```bash
+# Get recipe self_link and trigger build
+RECIPE_LINK=$(lp-api get ~owner/project/+git/repo/recipes | \
+  jq -r '.entries[] | select(.name=="my-recipe") | .self_link')
+
+lp-api post "$RECIPE_LINK" ws.op=performDailyBuild
+```
+
+#### List Recipes
+Get all recipes for a git repository.
+
+**Usage:**
+```bash
+lp-api get ~owner/project/+git/repo/recipes
+```
+
+**Example:**
+```bash
+# List all recipes and check build status
+lp-api get ~oem-solutions-engineers/pc-enablement/+git/oem-jammy-projects-meta/recipes | \
+  jq -r '.entries[] | "\(.name): build_daily=\(.build_daily)"'
 ```
 
 ### Person/Team Operations
