@@ -81,24 +81,40 @@ USAGE
             exit 2
         fi
         rid=$2
-        echo "Resource: $rid\n"
-        echo "Methods:" 
-        awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH" | grep -oP '<wadl:method[^>]*name="\K[^"]+' | sort -u | sed -e 's/^/  - /'
-        echo "\nws.op values:" 
-        awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH" | grep -oP 'name="ws.op"[^>]*fixed="\K[^"]+' | sort -u | sed -e 's/^/  - /'
-        echo "\nParameters (name [required?] - doc):"
-        # iterate over params and show required and doc text
-        awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH" > /tmp/wadl_block_$$
-        grep -oP '<wadl:param[^>]*>' /tmp/wadl_block_$$ | while read -r paramtag; do
-            name=$(echo "$paramtag" | grep -oP 'name="\K[^"]+')
+        block=$(awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH")
+        if [ -z "$block" ]; then
+            echo "Resource not found: $rid" >&2
+            exit 1
+        fi
+
+        echo "Resource: $rid"
+        echo
+        echo "Methods:"
+        echo "$block" | grep -oP '<wadl:method[^>]*name="\K[^"]+' | sort -u | sed -e 's/^/  - /' || true
+        echo
+        echo "ws.op values:"
+        echo "$block" | grep -oP 'name="ws.op"[^>]*fixed="\K[^"]+' | sort -u | sed -e 's/^/  - /' || true
+        echo
+        echo "Parameters (name [required?] - doc):"
+        tmp=$(mktemp)
+        echo "$block" > "$tmp"
+        params=$(grep -oP '<wadl:param[^>]*name="\K[^"]+' "$tmp" | sort -u)
+        for name in $params; do
+            paramtag=$(grep -oP "<wadl:param[^>]*name=\"$name\"[^>]*>" "$tmp" | head -n1)
             required=$(echo "$paramtag" | grep -oP 'required="\K[^"]+' || true)
-            # get doc following the tag (look ahead in file)
-            doc=$(awk -v n="$paramtag" 'BEGIN{RS="<wadl:param"; ORS=""} $0 ~ n{getline; print}' /tmp/wadl_block_$$ | sed -n '1,3p' | sed 's/<[^>]*>//g' | tr -s '\n' ' ')
-            if [ -n "$name" ]; then
-                echo "  - $name [${required:-false}] - ${doc:-(no doc)}"
+            # flatten the param section and extract wadl:doc content if present
+            section=$(sed -n "/<wadl:param[^>]*name=\"$name\"/,/<\/wadl:param>/p" "$tmp" | tr '\n' ' ')
+            doc=$(echo "$section" | grep -oP '<wadl:doc[^>]*>\K.*?(?=</wadl:doc>)' || true)
+            doc=$(echo "$doc" | sed 's/<[^>]*>//g' | tr -s ' ' ' ' | sed 's/^ *//;s/ *$//')
+            if [ -z "$doc" ]; then
+                doc="(no doc)"
             fi
+            if [ -z "$required" ]; then
+                required=false
+            fi
+            echo "  - $name [$required] - $doc"
         done
-        rm -f /tmp/wadl_block_$$
+        rm -f "$tmp"
         ;;
     template)
         # generate a detailed lp-api command template for a resource and ws.op
