@@ -179,6 +179,91 @@ lp-api post <build-resource> ws.op=cancel
 
 ### PPA Operations
 
+#### getPublishedSources
+List published source packages in a PPA.
+
+**Usage:**
+```bash
+lp-api get ~owner/+archive/ubuntu/<ppa> \
+  ws.op==getPublishedSources \
+  distro_series==<series-url> \
+  status==Published \
+  ws.size==300
+```
+
+**Common Filters:**
+```bash
+# By distribution series
+distro_series==https://api.launchpad.net/devel/ubuntu/noble
+distro_series==https://api.launchpad.net/devel/ubuntu/jammy
+
+# By status
+status==Published
+status==Pending
+status==Superseded
+status==Deleted
+
+# By source package name
+source_name==firefox
+
+# By pocket
+pocket==Release
+pocket==Updates
+pocket==Security
+```
+
+**Examples:**
+```bash
+# List all published packages for noble
+lp-api get ~oem-solutions-group/+archive/ubuntu/intel-ipu6 \
+  ws.op==getPublishedSources \
+  distro_series==https://api.launchpad.net/devel/ubuntu/noble \
+  status==Published \
+  ws.size==300
+
+# List specific package across all series
+lp-api get ~owner/+archive/ubuntu/ppa \
+  ws.op==getPublishedSources \
+  source_name==firefox \
+  status==Published
+
+# Get only package count
+lp-api get ~owner/+archive/ubuntu/ppa \
+  ws.op==getPublishedSources \
+  distro_series==https://api.launchpad.net/devel/ubuntu/noble \
+  status==Published \
+  ws.show==total_size
+```
+
+#### getPublishedBinaries
+List published binary packages in a PPA.
+
+**Usage:**
+```bash
+lp-api get ~owner/+archive/ubuntu/<ppa> \
+  ws.op==getPublishedBinaries \
+  distro_arch_series==<arch-series-url> \
+  status==Published \
+  binary_name==<package-name> \
+  ws.size==300
+```
+
+**Examples:**
+```bash
+# List all published binaries for noble amd64
+lp-api get ~owner/+archive/ubuntu/ppa \
+  ws.op==getPublishedBinaries \
+  distro_arch_series==https://api.launchpad.net/devel/ubuntu/noble/amd64 \
+  status==Published \
+  ws.size==300
+
+# Search for specific binary package
+lp-api get ~owner/+archive/ubuntu/ppa \
+  ws.op==getPublishedBinaries \
+  binary_name==firefox \
+  status==Published
+```
+
 #### copyPackage
 Copy a package from one archive to another.
 

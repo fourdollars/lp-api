@@ -196,6 +196,28 @@ ubuntu/+build/<build-id>/+file/<log-file>
 
 # Example
 ~mozillateam/+archive/ubuntu/ppa
+~oem-solutions-group/+archive/ubuntu/intel-ipu6
+~oem-solutions-engineers/+archive/ubuntu/pc-enablement-tools
+```
+
+### PPA Package Listing
+```bash
+# List published source packages (use ws.op==getPublishedSources)
+~owner/+archive/ubuntu/<ppa-name> ws.op==getPublishedSources \
+  distro_series==https://api.launchpad.net/devel/ubuntu/noble \
+  status==Published
+
+# List published binary packages
+~owner/+archive/ubuntu/<ppa-name> ws.op==getPublishedBinaries \
+  distro_arch_series==https://api.launchpad.net/devel/ubuntu/noble/amd64 \
+  status==Published
+
+# Examples
+lp-api get ~oem-solutions-group/+archive/ubuntu/intel-ipu6 \
+  ws.op==getPublishedSources \
+  distro_series==https://api.launchpad.net/devel/ubuntu/noble \
+  status==Published \
+  ws.size==300
 ```
 
 ### PPA Package Publishing
