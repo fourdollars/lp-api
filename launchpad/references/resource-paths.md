@@ -117,7 +117,31 @@ ubuntu/jammy/arm64
 # Primary archive (main Ubuntu repository)
 ubuntu/+archive/primary
 debian/+archive/primary
+
+# List all series for a distribution
+ubuntu | .series_collection_link
 ```
+
+**List Ubuntu Series:**
+```bash
+# Get all Ubuntu series with status
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | "\(.name) (\(.version)) - \(.status)"'
+
+# Get only supported series
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | select(.status=="Supported" or .status=="Current Stable Release") | "\(.name) (\(.version))"'
+
+# Get active development series
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | select(.status=="Active Development") | "\(.name) (\(.version))"'
+```
+
+**Current Ubuntu Series (as of 2026-01):**
+- **Active Development**: resolute (26.04)
+- **Current Stable**: questing (25.10)
+- **Supported LTS**: noble (24.04), jammy (22.04), focal (20.04), bionic (18.04), xenial (16.04), trusty (14.04)
+- **Supported**: plucky (25.04)
 
 ### Source Package Resources
 ```bash

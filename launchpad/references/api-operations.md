@@ -456,6 +456,35 @@ Get project timeline/activity.
 lp-api get <project> ws.op==getTimeline
 ```
 
+### Distribution Operations
+
+#### List Series
+Get all series (releases) for a distribution.
+
+**Usage:**
+```bash
+lp-api get <distro> | lp-api .series_collection_link
+```
+
+**Examples:**
+```bash
+# List all Ubuntu series with status
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | "\(.name) (\(.version)) - \(.status)"'
+
+# Filter by status
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | select(.status=="Supported") | .name'
+
+# Get current stable release
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | select(.status=="Current Stable Release") | "\(.name) (\(.version))"'
+
+# Get active development release
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq -r '.entries[] | select(.status=="Active Development") | "\(.name) (\(.version))"'
+```
+
 ## Query Parameters (ws.*)
 
 ### Control Parameters
