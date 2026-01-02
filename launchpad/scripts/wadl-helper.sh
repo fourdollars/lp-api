@@ -118,7 +118,7 @@ USAGE
         fi
         for op in $wsops; do
             echo -e "\n# ws.op=$op"
-            ./$(basename "$0") template "$rid" "$op" || true
+            "$0" template "$rid" "$op" || true
             # provide a concrete example for common ops
             case "$op" in
                 createBug)
