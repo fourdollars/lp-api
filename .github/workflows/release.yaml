@@ -8,16 +8,30 @@ permissions:
   contents: read
 
 jobs:
-  release-linux-amd64:
+  release:
     permissions:
       contents: write
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04]
-        goos: [linux]
-        goarch: [amd64, arm64]
-    name: release ${{ matrix.os }} ${{ matrix.goos }}/${{ matrix.goarch }}
-    runs-on: ${{ matrix.os }}
+        include:
+          # Linux builds
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          # macOS builds
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          # Windows builds
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+    name: release ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - uses: wangyoucao577/go-release-action@v1
@@ -27,5 +41,5 @@ jobs:
         goarch: ${{ matrix.goarch }}
         md5sum: false
         sha256sum: true
-        asset_name: "lp-api-${{github.ref_name}}-${{ matrix.goos }}-${{ matrix.goarch }}-${{ matrix.os }}"
+        asset_name: "lp-api-${{github.ref_name}}-${{ matrix.goos }}-${{ matrix.goarch }}"
         ldflags: "-s -w"
