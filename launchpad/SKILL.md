@@ -126,9 +126,12 @@ lp-api post ubuntu/+bugs ws.op=createBugTask title="Bug title" description="Deta
 
 # Mark bug as duplicate
 lp-api post bugs/123456 ws.op=markAsDuplicate duplicate_of=/bugs/123455
-```
 
-**Note on file attachments:** The `ws.op=addAttachment` operation may have API limitations. For reliable file operations, consider using the Launchpad web interface or investigating alternative API methods.
+# Attach file to bug (see File Operations section for details)
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@error.log \
+  comment="Production error log"
+```
 
 ### 4. Resource Replacement (PUT)
 
@@ -186,21 +189,51 @@ lp-api download <file-url>
 
 **File Uploads:**
 
-Upload and attach files to Launchpad resources (bugs, tasks, etc.).
+Attach files to Launchpad bugs using curl-style @filepath syntax.
 
 ```bash
-# Upload file to bug as attachment
-lp-api post bugs/123456 ws.op=addAttachment attachment=@/path/to/file.txt description="Log file"
+# Attach file to bug (comment parameter is REQUIRED)
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@/path/to/file.log \
+  comment="Production error log"
 
-# Upload multiple files
-lp-api post bugs/123456 ws.op=addAttachment attachment=@error.log description="Error log"
-lp-api post bugs/123456 ws.op=addAttachment attachment=@config.yaml description="Configuration"
+# With optional description
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@error.log \
+  comment="Error log from production" \
+  description="Log file showing the database connection timeout"
 
-# Create file content dynamically and upload
-echo "Test results: PASSED" > /tmp/results.txt
-lp-api post bugs/123456 ws.op=addAttachment attachment=@/tmp/results.txt description="Test results"
-rm /tmp/results.txt
+# Attach different file types
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@screenshot.png \
+  comment="UI bug screenshot"
+
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@config.yaml \
+  comment="Configuration file that triggers the bug"
+
+# Upload multiple files (one at a time)
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@error.log \
+  comment="Error log"
+
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@debug.log \
+  comment="Debug output"
 ```
+
+**File Upload Features:**
+- Automatic MIME type detection from file extension
+- Supports text files (.log, .txt), images (.png, .jpg), configs (.json, .yaml), archives (.tar.gz)
+- Automatic filename detection from file path
+- Clear error messages for missing files or permission issues
+
+**Important Notes:**
+- The `comment` parameter is **required** (not optional)
+- The `attachment` parameter must use `@` prefix for file paths
+- Files are read into memory, suitable for typical bug attachments (<10MB)
+- Use absolute or relative file paths
+- Binary files are supported (images, archives, etc.)
 
 **Complete Workflow Example:**
 
@@ -432,7 +465,9 @@ Invoke this skill when the user mentions or needs to:
 - **Add comments** to bugs or tasks
 - **Modify bug descriptions**, titles, or properties
 - Update bug status, tags, importance, or assignees
-- **Upload or attach files** to bugs (logs, screenshots, configs, etc.)
+- **Upload or attach files** to bugs (logs, screenshots, configs, patches, etc.)
+- **Attach error logs, debug output, or diagnostic files** to bug reports
+- **Upload screenshots or images** to document UI issues
 - Create new bugs, bug tasks, or other resources
 - Monitor Ubuntu/Debian package builds
 - Download build artifacts from Launchpad

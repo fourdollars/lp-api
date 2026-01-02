@@ -10,10 +10,13 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +26,74 @@ type Credential struct {
 	Key    string `toml:"oauth_consumer_key"`
 	Token  string `toml:"oauth_token"`
 	Secret string `toml:"oauth_token_secret"`
+}
+
+// FileAttachment represents a file to be uploaded to Launchpad
+type FileAttachment struct {
+	Path        string
+	Filename    string
+	ContentType string
+	Data        []byte
+}
+
+// isFileAttachment checks if a parameter value starts with @ indicating a file path
+func isFileAttachment(param string) bool {
+	return strings.HasPrefix(param, "@")
+}
+
+// extractFilePath extracts the file path from a parameter value with @ prefix
+func extractFilePath(param string) string {
+	if isFileAttachment(param) {
+		return strings.TrimPrefix(param, "@")
+	}
+	return ""
+}
+
+// detectContentType detects MIME type from file extension
+func detectContentType(filepath string) string {
+	ext := strings.ToLower(filepath[strings.LastIndex(filepath, "."):])
+	contentType := mime.TypeByExtension(ext)
+	if contentType == "" {
+		return "application/octet-stream"
+	}
+	return contentType
+}
+
+// readFileContent reads file content from disk into memory
+func readFileContent(filepath string) ([]byte, error) {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// buildMultipartBody constructs a multipart/form-data request body with file content and form fields
+func buildMultipartBody(attachment FileAttachment, params map[string]string) (*bytes.Buffer, string, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add file data field
+	part, err := writer.CreateFormFile("data", attachment.Filename)
+	if err != nil {
+		return nil, "", err
+	}
+	if _, err := io.Copy(part, bytes.NewReader(attachment.Data)); err != nil {
+		return nil, "", err
+	}
+
+	// Add other form fields
+	for key, value := range params {
+		if err := writer.WriteField(key, value); err != nil {
+			return nil, "", err
+		}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, "", err
+	}
+
+	return body, writer.FormDataContentType(), nil
 }
 
 func (c *Credential) RequestToken(oauth_consumer_key string) error {
@@ -367,26 +438,102 @@ func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
 	if *debug {
 		log.Print("POST ", resource, " ", args)
 	}
-	data := url.Values{}
+
+	// Check for file attachment
+	var attachment *FileAttachment
+	params := make(map[string]string)
+
 	if len(args) > 0 {
 		for _, arg := range args {
 			fields := strings.Split(arg, "=")
 			key := fields[0]
 			key_last := strings.Split(key, "")[len(key)-1]
 			value := strings.Join(fields[1:], "=")
-			value_first := strings.Split(value, "")[0]
+			value_first := ""
+			if len(value) > 0 {
+				value_first = strings.Split(value, "")[0]
+			}
+
 			if len(value) > 0 && value_first != "=" && key_last != ":" {
-				data.Set(key, value)
+				// Check if this is a file attachment
+				if key == "attachment" && isFileAttachment(value) {
+					filePath := extractFilePath(value)
+
+					// Read file content
+					data, err := readFileContent(filePath)
+					if err != nil {
+						if os.IsNotExist(err) {
+							return "", fmt.Errorf("Error: File not found: %s", filePath)
+						}
+						if os.IsPermission(err) {
+							return "", fmt.Errorf("Error: Cannot read file: permission denied")
+						}
+						return "", fmt.Errorf("Error: Failed to read file: %v", err)
+					}
+
+					attachment = &FileAttachment{
+						Path:        filePath,
+						Filename:    filepath.Base(filePath),
+						ContentType: detectContentType(filePath),
+						Data:        data,
+					}
+
+					if *debug {
+						log.Printf("Detected file attachment: %s (%s, %d bytes)", attachment.Filename, attachment.ContentType, len(attachment.Data))
+					}
+				} else {
+					params[key] = value
+				}
 			}
 		}
 	}
-	if *debug {
-		log.Print("Body: ", data.Encode())
+
+	var req *http.Request
+	var err error
+
+	// If we have a file attachment, use multipart/form-data
+	if attachment != nil {
+		// Ensure filename parameter is included (required by Launchpad API)
+		if _, ok := params["filename"]; !ok {
+			params["filename"] = attachment.Filename
+		}
+
+		// Check if comment is provided (required by Launchpad API)
+		if _, ok := params["comment"]; !ok {
+			return "", fmt.Errorf("Error: 'comment' parameter is required when attaching files")
+		}
+
+		body, contentType, err := buildMultipartBody(*attachment, params)
+		if err != nil {
+			return "", fmt.Errorf("Error: Failed to build multipart body: %v", err)
+		}
+
+		if *debug {
+			log.Print("Using multipart/form-data for file upload")
+		}
+
+		req, err = http.NewRequest("POST", resource, body)
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", contentType)
+	} else {
+		// Regular form-encoded POST
+		data := url.Values{}
+		for key, value := range params {
+			data.Set(key, value)
+		}
+
+		if *debug {
+			log.Print("Body: ", data.Encode())
+		}
+
+		req, err = http.NewRequest("POST", resource, strings.NewReader(data.Encode()))
+		if err != nil {
+			return "", err
+		}
 	}
-	req, err := http.NewRequest("POST", resource, strings.NewReader(data.Encode()))
-	if err != nil {
-		return "", err
-	}
+
 	lp.QueryProcess(req, args)
 	lp.SetAuthHeader(&req.Header)
 	return lp.DoProcess(req)
@@ -424,7 +571,7 @@ var key = flag.String("key", "System-wide: golang (https://github.com/fourdollar
 var lpAPI = "https://api.launchpad.net/devel/"
 var output = flag.String("output", "", "Specify the output file.")
 var staging = flag.Bool("staging", false, "Use Launchpad staging server.")
-var timeout = flag.Duration("timeout", 10 * time.Second, "Timeout for Launchpad API requests.")
+var timeout = flag.Duration("timeout", 10*time.Second, "Timeout for Launchpad API requests.")
 
 func main() {
 	flag.Parse()
