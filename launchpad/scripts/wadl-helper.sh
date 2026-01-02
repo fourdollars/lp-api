@@ -29,6 +29,8 @@ Commands:
       Example: wadl-helper.sh resource-params bugs
   resource-wsops <id>         List ws.op fixed values for resource_type id
       Example: wadl-helper.sh resource-wsops bugs
+  describe <id>               Show comprehensive info for a resource_type (methods, ws.ops, params with required/docs)
+      Example: wadl-helper.sh describe bugs
   template <id> <ws.op>       Print a detailed lp-api command template for resource and ws.op
       Example: wadl-helper.sh template bugs createBug
   examples <id>               Print ready-to-run example commands for resource's ws.op values
@@ -72,6 +74,31 @@ USAGE
             exit 2
         fi
         awk "/<wadl:resource_type [^>]*id=\"$2\"/, /<\/wadl:resource_type>/" "$WADL_PATH" | grep -oP 'name="ws.op"[^>]*fixed="\K[^"]+' | sort -u
+        ;;
+    describe)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 describe <resource_type_id>" >&2
+            exit 2
+        fi
+        rid=$2
+        echo "Resource: $rid\n"
+        echo "Methods:" 
+        awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH" | grep -oP '<wadl:method[^>]*name="\K[^"]+' | sort -u | sed -e 's/^/  - /'
+        echo "\nws.op values:" 
+        awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH" | grep -oP 'name="ws.op"[^>]*fixed="\K[^"]+' | sort -u | sed -e 's/^/  - /'
+        echo "\nParameters (name [required?] - doc):"
+        # iterate over params and show required and doc text
+        awk "/<wadl:resource_type [^>]*id=\"$rid\"/, /<\/wadl:resource_type>/" "$WADL_PATH" > /tmp/wadl_block_$$
+        grep -oP '<wadl:param[^>]*>' /tmp/wadl_block_$$ | while read -r paramtag; do
+            name=$(echo "$paramtag" | grep -oP 'name="\K[^"]+')
+            required=$(echo "$paramtag" | grep -oP 'required="\K[^"]+' || true)
+            # get doc following the tag (look ahead in file)
+            doc=$(awk -v n="$paramtag" 'BEGIN{RS="<wadl:param"; ORS=""} $0 ~ n{getline; print}' /tmp/wadl_block_$$ | sed -n '1,3p' | sed 's/<[^>]*>//g' | tr -s '\n' ' ')
+            if [ -n "$name" ]; then
+                echo "  - $name [${required:-false}] - ${doc:-(no doc)}"
+            fi
+        done
+        rm -f /tmp/wadl_block_$$
         ;;
     template)
         # generate a detailed lp-api command template for a resource and ws.op
