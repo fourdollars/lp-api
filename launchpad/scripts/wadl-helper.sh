@@ -12,11 +12,20 @@ case "$1" in
     list-methods)
         if [ -z "$2" ]; then
             # list all method names
-            xmllint --xpath 'string-join(//wadl:method/@name, "\n")' --nonet --shell "$WADL_PATH" 2>/dev/null || \
-            xmlstarlet sel -N wadl="http://research.sun.com/wadl/2006/10" -t -m "//wadl:method" -v "@name" -n "$WADL_PATH"
+            if command -v xmllint >/dev/null 2>&1; then
+                xmllint --xpath 'string(//wadl:application//@*)' "$WADL_PATH" 2>/dev/null || true
+            else
+                # Fallback: grep for method name attributes
+                grep -oP '<wadl:method[^>]*name="\K[^"]+' "$WADL_PATH" | sort -u
+            fi
         else
             # list methods for a given resource_type id
-            xmlstarlet sel -N wadl="http://research.sun.com/wadl/2006/10" -t -m "//wadl:resource_type[@id='$2']/wadl:method" -v "@name" -n "$WADL_PATH"
+            if command -v xmllint >/dev/null 2>&1; then
+                xmllint --xpath "//wadl:resource_type[@id='$2']//wadl:method/@name" --nonet "$WADL_PATH" 2>/dev/null | sed -e 's/name="/\n/g' -e 's/"//g' | sed '/^$/d'
+            else
+                # Fallback: crude grep within resource_type block
+                awk "/<wadl:resource_type [^>]*id=\"$2\"/, /<\/wadl:resource_type>/" "$WADL_PATH" | grep -oP '<wadl:method[^>]*name="\K[^"]+' | sort -u
+            fi
         fi
         ;;
     show-resource)
@@ -24,7 +33,11 @@ case "$1" in
             echo "Usage: $0 show-resource <resource_type_id>" >&2
             exit 2
         fi
-        xmlstarlet sel -N wadl="http://research.sun.com/wadl/2006/10" -t -c "//wadl:resource_type[@id='$2']" "$WADL_PATH"
+        if command -v xmllint >/dev/null 2>&1; then
+            xmllint --format "$WADL_PATH" | awk "/<wadl:resource_type [^>]*id=\"$2\"/, /<\/wadl:resource_type>/"
+        else
+            awk "/<wadl:resource_type [^>]*id=\"$2\"/, /<\/wadl:resource_type>/" "$WADL_PATH"
+        fi
         ;;
     *)
         echo "Usage: $0 {list-methods [resource_type_id]|show-resource <resource_type_id>}"
