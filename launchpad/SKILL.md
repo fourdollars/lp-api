@@ -7,7 +7,14 @@ description: Interact with Canonical's Launchpad platform (launchpad.net) using 
 
 ## Overview
 
-This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through the `lp-api` command-line tool. It provides capabilities for querying and managing bugs, people, projects, builds, and other Launchpad resources via the REST API at https://api.launchpad.net/devel.html.
+This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the REST API at https://api.launchpad.net/devel.html.
+
+**Key capabilities include:**
+- Adding comments to bugs and tasks
+- Modifying bug descriptions, status, tags, and properties
+- Uploading and attaching files to resources
+- Creating new bugs, tasks, and other resources
+- Querying and downloading build artifacts
 
 ## Core Capabilities
 
@@ -55,7 +62,7 @@ lp-api get ubuntu/+bugs status==New
 
 ### 2. Resource Modification (PATCH)
 
-Update existing resources using JSON data with `:=` syntax.
+Update existing resources using JSON data with `:=` syntax. This allows modifying bug properties, descriptions, metadata, and more.
 
 **Basic Pattern:**
 ```bash
@@ -76,11 +83,20 @@ lp-api patch bugs/123456 status:='"Fix Released"'
 
 # Update importance
 lp-api patch bugs/123456 importance:='"High"'
+
+# Modify bug description
+lp-api patch bugs/123456 description:='"Updated bug description with more details"'
+
+# Update bug title
+lp-api patch bugs/123456 title:='"New bug title"'
+
+# Change assignee (operates on bug task, not bug directly)
+lp-api patch <bug-task-link> assignee_link:='https://api.launchpad.net/devel/~username'
 ```
 
 ### 3. Resource Creation (POST)
 
-Create new resources or invoke operations using form data.
+Create new resources or invoke operations using form data. This includes adding comments, uploading files, subscribing to bugs, and creating new resources.
 
 **Basic Pattern:**
 ```bash
@@ -93,12 +109,26 @@ lp-api post <resource-path> ws.op=<operation> param=value
 # Add comment to bug
 lp-api post bugs/123456 ws.op=newMessage content="This is a comment"
 
+# Add comment with subject
+lp-api post bugs/123456 ws.op=newMessage subject="Update" content="Status update on the fix"
+
 # Subscribe to bug
 lp-api post bugs/123456 ws.op=subscribe
 
+# Unsubscribe from bug
+lp-api post bugs/123456 ws.op=unsubscribe
+
+# Create a new bug
+lp-api post ubuntu ws.op=createBug title="Bug title" description="Detailed bug description"
+
 # Create a new bug task
 lp-api post ubuntu/+bugs ws.op=createBugTask title="Bug title" description="Details"
+
+# Mark bug as duplicate
+lp-api post bugs/123456 ws.op=markAsDuplicate duplicate_of=/bugs/123455
 ```
+
+**Note on file attachments:** The `ws.op=addAttachment` operation may have API limitations. For reliable file operations, consider using the Launchpad web interface or investigating alternative API methods.
 
 ### 4. Resource Replacement (PUT)
 
@@ -143,13 +173,33 @@ BUILD=$(lp-api get ~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu | lp-api .builds_
 lp-api get ubuntu ws.op==searchTasks | lp-api .self_link
 ```
 
-### 7. File Downloads
+### 7. File Operations
+
+**File Downloads:**
 
 Download artifacts from Launchpad builds.
 
-**Basic Pattern:**
 ```bash
+# Download a file
 lp-api download <file-url>
+```
+
+**File Uploads:**
+
+Upload and attach files to Launchpad resources (bugs, tasks, etc.).
+
+```bash
+# Upload file to bug as attachment
+lp-api post bugs/123456 ws.op=addAttachment attachment=@/path/to/file.txt description="Log file"
+
+# Upload multiple files
+lp-api post bugs/123456 ws.op=addAttachment attachment=@error.log description="Error log"
+lp-api post bugs/123456 ws.op=addAttachment attachment=@config.yaml description="Configuration"
+
+# Create file content dynamically and upload
+echo "Test results: PASSED" > /tmp/results.txt
+lp-api post bugs/123456 ws.op=addAttachment attachment=@/tmp/results.txt description="Test results"
+rm /tmp/results.txt
 ```
 
 **Complete Workflow Example:**
@@ -215,6 +265,41 @@ BUGS=$(lp-api get ubuntu ws.op==searchTasks tags==needs-update | \
 # Update each bug
 for BUG in $BUGS; do
   lp-api patch "$BUG" tags:='["updated","focal"]'
+done
+```
+
+### Workflow 4: Complete Bug Management
+
+```bash
+# 1. Create a new bug
+BUG_ID=$(lp-api post ubuntu ws.op=createBug \
+  title="Package fails to install on Noble" \
+  description="Detailed description of the installation failure" | \
+  jq -r '.id')
+
+echo "Created bug: $BUG_ID"
+
+# 2. Add initial comment with analysis
+lp-api post "bugs/$BUG_ID" ws.op=newMessage \
+  subject="Initial Analysis" \
+  content="Root cause: missing dependency on libfoo"
+
+# 3. Update bug properties
+lp-api patch "bugs/$BUG_ID" importance:='"High"'
+lp-api patch "bugs/$BUG_ID" tags:='["noble","packaging"]'
+
+# 4. Subscribe to bug for updates
+lp-api post "bugs/$BUG_ID" ws.op=subscribe
+```
+
+### Workflow 5: Bulk Comment Addition
+
+```bash
+# Add status updates to multiple bugs
+for BUG_ID in 123456 123457 123458; do
+  lp-api post "bugs/$BUG_ID" ws.op=newMessage \
+    subject="Status Update" \
+    content="Fix has been uploaded to noble-proposed"
 done
 ```
 
@@ -344,13 +429,19 @@ Common errors and solutions:
 Invoke this skill when the user mentions or needs to:
 
 - Query Launchpad bugs, people, or projects
-- Update bug status, tags, or properties
+- **Add comments** to bugs or tasks
+- **Modify bug descriptions**, titles, or properties
+- Update bug status, tags, importance, or assignees
+- **Upload or attach files** to bugs (logs, screenshots, configs, etc.)
+- Create new bugs, bug tasks, or other resources
 - Monitor Ubuntu/Debian package builds
 - Download build artifacts from Launchpad
 - Search for resources on launchpad.net
 - Automate Launchpad workflows
 - Integrate Launchpad data into CI/CD pipelines
 - Work with PPAs, branches, or source packages
+- Subscribe/unsubscribe to bugs or resources
+- Mark bugs as duplicates or fix released
 
 ## Resources
 
