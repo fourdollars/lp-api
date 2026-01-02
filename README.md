@@ -18,7 +18,7 @@ A command line tool made by golang to interact with Launchpad API https://api.la
 **File uploads:**
 * `lp-api post bugs/123456 ws.op=addAttachment attachment=@error.log comment="Production error log"` - Attach log file to bug (comment is required)
 * `lp-api post bugs/123456 ws.op=addAttachment attachment=@screenshot.png comment="UI bug" description="Screenshot showing the issue"` - Attach image with description
-* `lp-api post bugs/123456 ws.op=addAttachment attachment=@config.yaml comment="Config file" description="Configuration that triggers the bug"` - Attach config file
+* `lp-api post bugs/123456 ws.op=addAttachment attachment=@fix.patch comment="Proposed fix" is_patch=true` - Attach patch file
 
 **Download builds:**
 * `BUILD=$(lp-api get ~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu | lp-api .builds_collection_link | jq -r '.entries | .[0] | .web_link'); echo $BUILD` - Get the latest build for Ubuntu jammy

@@ -203,6 +203,19 @@ lp-api post bugs/123456 ws.op=addAttachment \
   comment="Error log from production" \
   description="Log file showing the database connection timeout"
 
+# Attach a patch file (set is_patch=true for patches)
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@fix.patch \
+  comment="Patch to fix the database timeout issue" \
+  is_patch=true
+
+# Attach a diff file as a patch
+lp-api post bugs/123456 ws.op=addAttachment \
+  attachment=@bugfix.diff \
+  comment="Proposed fix for regression" \
+  is_patch=true \
+  description="This patch reverts the problematic commit"
+
 # Attach different file types
 lp-api post bugs/123456 ws.op=addAttachment \
   attachment=@screenshot.png \
@@ -222,11 +235,19 @@ lp-api post bugs/123456 ws.op=addAttachment \
   comment="Debug output"
 ```
 
+**File Upload Parameters:**
+- `attachment=@filepath` - **Required**: File to upload (@ prefix indicates file path)
+- `comment="text"` - **Required**: Comment describing the attachment
+- `description="text"` - *Optional*: Additional description of the file
+- `is_patch=true` - *Optional*: Set to `true` for patch/diff files (default: false)
+- `content_type="mime/type"` - *Optional*: Override auto-detected MIME type
+
 **File Upload Features:**
 - Automatic MIME type detection from file extension
-- Supports text files (.log, .txt), images (.png, .jpg), configs (.json, .yaml), archives (.tar.gz)
+- Supports text files (.log, .txt), patches (.patch, .diff), images (.png, .jpg), configs (.json, .yaml), archives (.tar.gz)
 - Automatic filename detection from file path
 - Clear error messages for missing files or permission issues
+- Patch files are automatically marked when `is_patch=true` is set
 
 **Important Notes:**
 - The `comment` parameter is **required** (not optional)
@@ -234,6 +255,7 @@ lp-api post bugs/123456 ws.op=addAttachment \
 - Files are read into memory, suitable for typical bug attachments (<10MB)
 - Use absolute or relative file paths
 - Binary files are supported (images, archives, etc.)
+- For patch files (.patch, .diff), set `is_patch=true` to properly categorize them
 
 **Complete Workflow Example:**
 
@@ -468,6 +490,7 @@ Invoke this skill when the user mentions or needs to:
 - **Upload or attach files** to bugs (logs, screenshots, configs, patches, etc.)
 - **Attach error logs, debug output, or diagnostic files** to bug reports
 - **Upload screenshots or images** to document UI issues
+- **Attach patch files (.patch, .diff) with fixes** to bugs
 - Create new bugs, bug tasks, or other resources
 - Monitor Ubuntu/Debian package builds
 - Download build artifacts from Launchpad

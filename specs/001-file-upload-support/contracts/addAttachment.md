@@ -56,6 +56,7 @@ Error log from production server
 | `attachment=@/path/file.log` | `data` field + `filename` | @ prefix triggers file read, filename auto-filled |
 | `comment="text"` | `comment` | **Required** - comment text |
 | `description="text"` | `description` | Optional description |
+| `is_patch=true` | `is_patch` | Set to true for patch/diff files |
 
 ## Response Format
 
@@ -150,7 +151,27 @@ lp-api post bugs/1 ws.op=addAttachment attachment=@screenshot.png comment="UI bu
 # Exit code: 0
 ```
 
-### Test Case 3: Missing Required Comment Error
+### Test Case 3: Upload Patch File
+```bash
+# Given: A patch file
+echo "--- a/file.go
++++ b/file.go
+@@ -1,3 +1,3 @@
+-old line
++new line" > /tmp/fix.patch
+
+# When: Attaching as patch with is_patch=true
+lp-api post bugs/1 ws.op=addAttachment \
+  attachment=@/tmp/fix.patch \
+  comment="Patch to fix the issue" \
+  is_patch=true
+
+# Then: Patch is uploaded and marked as patch
+# Expected: JSON response with is_patch: true
+# Exit code: 0
+```
+
+### Test Case 4: Missing Required Comment Error
 ```bash
 # Given: File exists but no comment provided
 # When: Attempting to attach without comment
