@@ -137,7 +137,7 @@ USAGE
                         fi
                     done
                 else
-                    echo "  (no ws.op-specific parameters)"
+                    echo "  - none"
                 fi
                 echo
             done
