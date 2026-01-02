@@ -15,13 +15,21 @@ Usage: wadl-helper.sh <command> [args]
 
 Commands:
   list-methods [resource]      List method names (optionally for a resource)
+      Example: wadl-helper.sh list-methods bugs
   list-resources               List resource_type ids
+      Example: wadl-helper.sh list-resources
   resource-methods <id>        List methods for resource_type id
+      Example: wadl-helper.sh resource-methods bugs
   resource-params <id>         List parameter names for resource_type id
+      Example: wadl-helper.sh resource-params bugs
   resource-wsops <id>         List ws.op fixed values for resource_type id
+      Example: wadl-helper.sh resource-wsops bugs
   template <id> <ws.op>       Print a detailed lp-api command template for resource and ws.op
+      Example: wadl-helper.sh template bugs createBug
   examples <id>               Print ready-to-run example commands for resource's ws.op values
+      Example: wadl-helper.sh examples bugs
   show-resource <id>          Print the raw WADL section for resource_type id
+      Example: wadl-helper.sh show-resource bugs
   -h, --help                  Show this help
 USAGE
         exit 0
