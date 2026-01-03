@@ -173,6 +173,76 @@ USAGE
         done
         rm -f "$tmp"
         ;;
+    validate)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 validate <method> <resource> [param=val ...]" >&2
+            exit 2
+        fi
+        method="$2"
+        resource="$3"
+        shift 3
+        args=("$@")
+
+        # derive resource_type id from resource (first path segment)
+        rid="${resource%%/*}"
+        # normalize common prefixes
+        rid="${rid#~}"
+        rid="${rid#+}"
+
+        block=$(awk "/<wadl:resource_type [^>]*id=\\\"$rid\\\"/, /<\\\/wadl:resource_type>/" "$WADL_PATH")
+        if [ -z "$block" ]; then
+            echo "ERROR: Resource type not found in WADL for id: $rid" >&2
+            exit 1
+        fi
+
+        # extract ws.op if provided
+        wsop=""
+        for a in "${args[@]}"; do
+            if [[ $a == ws.op==* ]]; then
+                wsop="${a#ws.op==}"
+            elif [[ $a == ws.op=* ]]; then
+                wsop="${a#ws.op=}"
+            fi
+        done
+
+        if [ -n "$wsop" ]; then
+            # check ws.op is allowed for this resource_type
+            if ! echo "$block" | grep -oP 'name="ws.op"[^>]*fixed="\\K[^\"]+' | grep -Fxq "$wsop"; then
+                echo "ERROR: ws.op value '$wsop' is not valid for resource '$rid'" >&2
+                exit 1
+            fi
+        fi
+
+        # check for required parameters declared in WADL
+        tmp=$(mktemp)
+        echo "$block" > "$tmp"
+        missing=()
+        params=$(grep -oP '<wadl:param[^>]*name="\\K[^\"]+' "$tmp" | sort -u)
+        for pname in $params; do
+            paramtag=$(grep -oP "<wadl:param[^>]*name=\\\"$pname\\\"[^>]*>" "$tmp" | head -n1)
+            required=$(echo "$paramtag" | grep -oP 'required="\\K[^\"]+' || true)
+            if [ "$required" = "true" ]; then
+                found=false
+                for a in "${args[@]}"; do
+                    if [[ $a == $pname==* ]] || [[ $a == $pname=* ]]; then
+                        found=true
+                        break
+                    fi
+                done
+                if [ "$found" = false ]; then
+                    missing+=("$pname")
+                fi
+            fi
+        done
+        rm -f "$tmp"
+        if [ "${#missing[@]}" -ne 0 ]; then
+            echo "ERROR: Missing required params: ${missing[*]}" >&2
+            exit 1
+        fi
+
+        echo "OK: Command appears valid for resource '$rid'${wsop:+ and ws.op '$wsop'}"
+        ;;
+
     template)
         # generate a detailed lp-api command template for a resource and ws.op
         if [ -z "$2" ] || [ -z "$3" ]; then

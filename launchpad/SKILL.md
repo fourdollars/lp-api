@@ -9,6 +9,8 @@ description: Interact with Canonical's Launchpad platform (launchpad.net) using 
 
 This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the REST API at https://api.launchpad.net/devel.html.
 
+All lp-api commands suggested by this skill MUST be validated against launchpad/assets/launchpad-wadl.xml. Use the bundled helper launchpad/scripts/wadl-helper.sh validate <method> <resource> [params...] to check the resource, ws.op and required parameters; the skill should only provide commands that pass this validation.
+
 **Important Note:** All `lp-api` commands return JSON responses. Parse these outputs to extract meaningful information and present user-friendly summaries instead of raw JSON or commands.
 
 **Key capabilities include:**
@@ -274,6 +276,15 @@ while read -r LINK; do
   lp-api download "$LINK"
 done < <(lp-api get "~${BUILD//*~/}" ws.op==getFileUrls | jq -r .[])
 ```
+
+## Count and Status Filters
+
+When querying bugs with ws.op==searchTasks you can request only the total count by using ws.show==total_size which returns a single field `total_size` (ideal for quick counts). Status filters use status==<Status> (exact values must match launchpad/assets/launchpad-wadl.xml) — include one status== per status. Archive-only statuses (Published, Pending, Superseded, Deleted) apply to archive/package resources and should be excluded when querying active project bugs.
+
+Example — count all non-archive Somerville bugs assigned to the current user:
+
+ME_LINK=$(lp-api get people/+me | jq -r '.self_link') && lp-api get somerville ws.op==searchTasks assignee==$ME_LINK status==New status==Incomplete status==Opinion status==Invalid status=="Won't Fix" status==Expired status==Confirmed status==Triaged status=="In Progress" status=="Fix Committed" status=="Fix Released" ws.show==total_size | jq -r '.total_size'
+
 
 ## Series Management
 
