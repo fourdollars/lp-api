@@ -9,6 +9,8 @@ description: Interact with Canonical's Launchpad platform (launchpad.net) using 
 
 This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the REST API at https://api.launchpad.net/devel.html.
 
+**Important Note:** All `lp-api` commands return JSON responses. Parse these outputs to extract meaningful information and present user-friendly summaries instead of raw JSON or commands.
+
 **Key capabilities include:**
 - Adding comments to bugs and tasks
 - Modifying bug descriptions, status, tags, and properties
@@ -430,10 +432,12 @@ All responses are JSON. Common fields across resources:
 - `http_etag`: For caching/versioning
 - `*_collection_link`: Links to related collections
 
+**Output Presentation:** Always parse JSON outputs to display meaningful, user-friendly information. Execute lp-api commands internally without displaying the command itself—show only the parsed results or confirmation messages (e.g., "Successfully added comment to bug #123456" instead of the raw command and JSON). Extract key details and present them in readable formats (e.g., "Bug #123456: Title here, Status: New, Assignee: username").
+
 **Tip**: Use `jq` to parse and extract data:
 
 ```bash
-# Pretty print
+# Pretty print (for debugging, not user output)
 lp-api get bugs/1 | jq .
 
 # Extract specific field
@@ -442,6 +446,11 @@ lp-api get bugs/1 | jq -r '.title'
 # Get array of values
 lp-api get bugs/1 | lp-api .bug_tasks_collection_link | jq -r '.entries[].title'
 ```
+
+**Examples of User-Friendly Output:**
+- Instead of raw JSON: "Retrieved bug details for #123456: 'Package installation fails on Noble' (Status: New, Importance: High)"
+- For queries: "Found 5 bugs matching 'focal' tag"
+- For updates: "Updated bug #123456: status changed to 'Fix Released', added comment"
 
 ## Integration with Other Tools
 
