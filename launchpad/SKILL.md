@@ -59,7 +59,7 @@ lp-api get ubuntu ws.op==searchTasks tags==focal tags==jammy tags_combinator==Al
 lp-api get ubuntu ws.op==searchTasks ws.show==total_size
 
 # Filter by status
-lp-api get ubuntu/+bugs status==New
+lp-api get ubuntu ws.op==searchTasks status==New
 ```
 
 ### 2. Resource Modification (PATCH)
@@ -124,7 +124,7 @@ lp-api post bugs/123456 ws.op=unsubscribe
 lp-api post ubuntu ws.op=createBug title="Bug title" description="Detailed bug description"
 
 # Create a new bug task
-lp-api post ubuntu/+bugs ws.op=createBugTask title="Bug title" description="Details"
+lp-api post ubuntu ws.op=createBug title="Bug title" description="Details"
 
 # Mark bug as duplicate
 lp-api post bugs/123456 ws.op=markAsDuplicate duplicate_of=/bugs/123455
@@ -274,6 +274,45 @@ while read -r LINK; do
   lp-api download "$LINK"
 done < <(lp-api get "~${BUILD//*~/}" ws.op==getFileUrls | jq -r .[])
 ```
+
+## Series Management
+
+Launchpad series represent specific versions/releases of distributions or projects. Use the provided script and reference for series operations.
+
+### Listing Series
+
+```bash
+# Use the helper script (default project: ubuntu)
+./scripts/list_series.sh
+
+# For a specific project
+./scripts/list_series.sh <project-name>
+
+# List active series only
+lp-api get ubuntu | lp-api .series_collection_link | \
+  jq '.entries[] | select(.status == "Active") | .name'
+```
+
+### Series Operations
+
+```bash
+# Get series details
+lp-api get ubuntu/focal
+
+# Get packages in a series
+lp-api get ubuntu/+archive/primary ws.op==getPublishedSources distro_series==https://api.launchpad.net/devel/ubuntu/focal
+
+# Get published packages in focal
+lp-api get ubuntu/+archive/primary ws.op==getPublishedBinaries distro_arch_series==https://api.launchpad.net/devel/ubuntu/focal/amd64
+
+# Search bugs by series
+lp-api get ubuntu ws.op==searchTasks series==focal
+
+# Get builds for a series
+lp-api get ~ubuntu-cdimage/+livefs/ubuntu/focal/ubuntu | lp-api .builds_collection_link
+```
+
+See `references/series.md` for comprehensive series documentation and workflow examples.
 
 ## Common Workflows
 
@@ -509,6 +548,9 @@ Invoke this skill when the user mentions or needs to:
 - Work with PPAs, branches, or source packages
 - Subscribe/unsubscribe to bugs or resources
 - Mark bugs as duplicates or fix released
+- Work with Ubuntu/Debian series (versions like focal, jammy)
+- List or query series for projects/distributions
+- Perform operations scoped to specific series
 
 ## Resources
 
@@ -516,4 +558,5 @@ This skill includes reference documentation in `references/` directory:
 
 - **resource-paths.md**: Comprehensive guide to Launchpad API resource paths and patterns
 - **api-operations.md**: Detailed reference for web service operations (`ws.op=...`)
+- **series.md**: Guide to working with Launchpad series
 - **common-workflows.sh**: Shell script library with reusable workflow functions
