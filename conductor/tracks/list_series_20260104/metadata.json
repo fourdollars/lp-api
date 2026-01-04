@@ -1,0 +1,8 @@
+{
+  "track_id": "list_series_20260104",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-04T15:43:00Z",
+  "updated_at": "2026-01-04T15:43:00Z",
+  "description": "Add lp_list_series to list all series for a project in common-workflows.sh. Ex. `lp_list_series ubuntu` or `lp_list_series cloud-init`."
+}
