@@ -83,8 +83,15 @@ launchpad/
 ├── GEMINI.md                         # Gemini CLI extension definition
 ├── gemini-extension.json             # Gemini CLI manifest
 ├── references/
-│   ├── resource-paths.md             # Comprehensive API path guide
-│   └── api-operations.md             # Web service operations reference
+│   ├── archive.md                    # Archives and PPAs
+│   ├── basics.md                     # API concepts, pagination, miscellaneous
+│   ├── bugs.md                       # Bug tracking
+│   ├── git.md                        # Git repositories and recipes
+│   ├── livefs.md                     # LiveFS build monitoring
+│   ├── package-sets.md               # Package set management
+│   ├── people.md                     # People, teams, and memberships
+│   ├── project.md                    # Projects, milestones, and releases
+│   └── series.md                     # Distribution series
 └── scripts/
     └── common-workflows.sh           # Reusable shell functions
 ```
@@ -130,26 +137,19 @@ Assistant: [Uses skill to:
 
 ## Skill Resources
 
-### Resource Path Reference
+### Modular Reference Guides
 
-The `references/resource-paths.md` file contains comprehensive documentation on:
-- People, teams, and organizations
-- Bugs and bug tracking
-- Projects and distributions
-- Source and binary packages
-- Builds and build farm
-- PPAs (Personal Package Archives)
-- Git repositories and branches
-- Translations, specifications, questions
+The `references/` directory contains topic-specific documentation:
 
-### API Operations Reference
-
-The `references/api-operations.md` file documents:
-- Web service operations (`ws.op=...`)
-- Query parameters and filters
-- Pagination and sorting
-- Common workflow patterns
-- Date filters, tag combinators, status values
+- **archive.md**: Archives, PPAs, copying/syncing packages.
+- **basics.md**: URL structure, pagination, date filters, sorting, miscellaneous resources (Translations, Specs).
+- **bugs.md**: Searching, creating, modifying bugs, comments, and attachments.
+- **git.md**: Hosting Git repositories and building with Recipes.
+- **livefs.md**: Monitoring and managing LiveFS builds.
+- **package-sets.md**: Listing and querying package sets and sources.
+- **people.md**: Managing users, teams, and memberships.
+- **project.md**: Managing projects, milestones, and releases.
+- **series.md**: Working with distribution series (e.g., focal, jammy).
 
 ### Workflow Scripts
 
@@ -244,6 +244,6 @@ For issues with:
 
 ## Version
 
-Skill Version: 1.0.4
+Skill Version: 1.1.0
 Compatible with: lp-api latest
 Last Updated: 2026-01-04

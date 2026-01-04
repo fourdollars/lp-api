@@ -461,118 +461,32 @@ lp-api -staging get bugs/1
 lp-api -timeout 30s get ubuntu ws.op==searchTasks
 ```
 
-## Common Resource Paths
+## Resources
 
-Refer to `references/resource-paths.md` for comprehensive list of resource patterns.
+This skill includes reference documentation in `references/` directory:
 
-**Quick Reference:**
-
-- **People**: `people/+me`, `~username`
-- **Bugs**: `bugs/<id>`
-- **Projects**: `<project-name>` (e.g., `ubuntu`, `launchpad`)
-- **Distributions**: `ubuntu`, `debian`
-- **Teams**: `~team-name`
-- **Package Sets**: `package-sets/<distro>/<series>/<name>`
-- **Builds**: `~owner/+livefs/distro/series/name`
-- **PPAs**: `~owner/+archive/ubuntu/ppa-name`
-- **Branches**: `~owner/project/branch-name`
-
-## API Response Format
-
-All responses are JSON. Common fields across resources:
-
-- `self_link`: Full API URL to this resource
-- `web_link`: Human-readable web URL
-- `resource_type_link`: Schema/type information
-- `http_etag`: For caching/versioning
-- `*_collection_link`: Links to related collections
-
-**Output Presentation:** Always parse JSON outputs to display meaningful, user-friendly information. Execute lp-api commands using the `-output` flag (or `>`) to write to a temporary file, then read that file. Do not display the raw JSON in the shell output. Extract key details and present them in readable formats (e.g., "Bug #123456: Title here, Status: New, Assignee: username").
-
-**Tip**: Use `jq` to parse and extract data:
-
-```bash
-# Pretty print (for debugging, not user output)
-lp-api get bugs/1 | jq .
-
-# Extract specific field
-lp-api get bugs/1 | jq -r '.title'
-
-# Get array of values
-lp-api get bugs/1 | lp-api .bug_tasks_collection_link | jq -r '.entries[].title'
-```
-
-**Examples of User-Friendly Output:**
-- Instead of raw JSON: "Retrieved bug details for #123456: 'Package installation fails on Noble' (Status: New, Importance: High)"
-- For queries: "Found 5 bugs matching 'focal' tag"
-- For updates: "Updated bug #123456: status changed to 'Fix Released', added comment"
-
-## Integration with Other Tools
-
-### With jq (JSON processing)
-```bash
-# Extract and filter data
-lp-api get ubuntu ws.op==searchTasks | \
-  jq '.entries[] | select(.importance == "High") | .web_link'
-```
-
-### With xargs (batch operations)
-```bash
-# Download multiple files
-lp-api get <build> ws.op==getFileUrls | \
-  jq -r '.[]' | \
-  xargs -I {} lp-api download {}
-```
-
-### With bash loops
-```bash
-# Process multiple resources
-for TAG in focal jammy noble; do
-  echo "Bugs for $TAG:"
-  lp-api get ubuntu ws.op==searchTasks tags==$TAG ws.show==total_size
-done
-```
-
-## Error Handling
-
-Common errors and solutions:
-
-1. **"Expired token"**: Remove `~/.config/lp-api.toml` and re-authenticate
-2. **401 Unauthorized**: Check OAuth credentials or permissions
-3. **404 Not Found**: Verify resource path is correct
-4. **Timeout**: Increase with `-timeout` flag
-5. **Invalid JSON**: Check `:=` syntax for PATCH, ensure valid JSON values
-
-## When to Use This Skill
-
-Invoke this skill when the user mentions or needs to:
-
-- Query Launchpad bugs, people, or projects
-- **Add comments** to bugs or tasks
-- **Modify bug descriptions**, titles, or properties
-- Update bug status, tags, importance, or assignees
-- **Upload or attach files** to bugs (logs, screenshots, configs, patches, etc.)
-- **Attach error logs, debug output, or diagnostic files** to bug reports
-- **Upload screenshots or images** to document UI issues
-- **Attach patch files (.patch, .diff) with fixes** to bugs
-- Create new bugs, bug tasks, or other resources
-- Monitor Ubuntu/Debian package builds
-- Download build artifacts from Launchpad
-- Search for resources on launchpad.net
-- Automate Launchpad workflows
-- Integrate Launchpad data into CI/CD pipelines
-- Work with PPAs, branches, or source packages
-- Subscribe/unsubscribe to bugs or resources
-- Mark bugs as duplicates or fix released
-- Work with Ubuntu/Debian series (versions like focal, jammy)
-- List or query series for projects/distributions
-- Perform operations scoped to specific series
+- **archive.md**: Guide to working with archives and PPAs
+- **basics.md**: General API concepts and miscellaneous resources
+- **bugs.md**: Comprehensive guide to bug tracking resources and operations
+- **git.md**: Guide to Git repositories and recipes
+- **livefs.md**: Guide to monitoring and managing LiveFS builds
+- **package-sets.md**: Guide to managing and querying package sets
+- **people.md**: Guide to managing people, teams, and memberships
+- **project.md**: Guide to managing projects, milestones, and releases
+- **series.md**: Guide to working with Launchpad series
+- **common-workflows.sh**: Shell script library with reusable workflow functions
 
 ## Resources
 
 This skill includes reference documentation in `references/` directory:
 
-- **resource-paths.md**: Comprehensive guide to Launchpad API resource paths and patterns
-- **api-operations.md**: Detailed reference for web service operations (`ws.op=...`)
+- **archive.md**: Guide to working with archives and PPAs
+- **basics.md**: General API concepts and miscellaneous resources
+- **bugs.md**: Comprehensive guide to bug tracking resources and operations
+- **git.md**: Guide to Git repositories and recipes
+- **livefs.md**: Guide to monitoring and managing LiveFS builds
+- **package-sets.md**: Guide to managing and querying package sets
+- **people.md**: Guide to managing people, teams, and memberships
+- **project.md**: Guide to managing projects, milestones, and releases
 - **series.md**: Guide to working with Launchpad series
 - **common-workflows.sh**: Shell script library with reusable workflow functions

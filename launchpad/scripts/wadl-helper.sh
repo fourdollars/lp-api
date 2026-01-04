@@ -97,15 +97,15 @@ USAGE
         echo
         # Show parameters specific to each ws.op
         # For each ws.op, show methods and parameters with docs
-        wsops=$(echo "$block" | grep -oP 'name="ws.op"[^>]*fixed="\\K[^"]+' | sort -u)
+        wsops=$(echo "$block" | grep -oP 'name="ws.op"[^>]*fixed="\K[^"]+' | sort -u)
         if [ -n "$wsops" ]; then
             for op in $wsops; do
                 echo "ws.op = $op"
                 # try to find method(s) that reference this op
-                methods=$(echo "$block" | grep -oP "<wadl:method[^>]*>[^<]*<.*ws.op.*${op}.*|<wadl:method[^>]*name=\"\K[^"]+" | sort -u || true)
+                methods=$(echo "$block" | grep -oP "<wadl:method[^>]*>[^<]*<.*ws.op.*${op}.*|<wadl:method[^>]*name=\"\K[^\"]+" | sort -u || true)
                 # fallback to methods in resource
                 if [ -z "$methods" ]; then
-                    methods=$(echo "$block" | grep -oP "<wadl:method[^>]*name=\"\K[^"]+" | sort -u)
+                    methods=$(echo "$block" | grep -oP "<wadl:method[^>]*name=\"\K[^\"]+" | sort -u)
                 fi
                 echo "  Methods: $(echo "$methods" | tr '\n' ' ' )"
 

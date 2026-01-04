@@ -2,6 +2,23 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.1.0] - 2026-01-04
+
+### Changed
+- **Modular Documentation**: Refactored the large, generic reference files into focused, topic-based guides for better discoverability and context management:
+  - `archive.md`: Archives and PPAs
+  - `basics.md`: API concepts, pagination, and miscellaneous resources
+  - `bugs.md`: Comprehensive bug tracking
+  - `git.md`: Git repositories and build recipes
+  - `livefs.md`: LiveFS build monitoring
+  - `package-sets.md`: Package set management
+  - `people.md`: People, teams, and memberships
+  - `project.md`: Projects, milestones, and releases
+- **Cleanup**: Removed legacy `api-operations.md` and `resource-paths.md`.
+
+### Fixed
+- **Scripts**: Fixed syntax errors in `wadl-helper.sh` that caused parsing failures in some shell environments.
+
 ## [1.0.4] - 2026-01-04
 
 ### Added
@@ -22,11 +39,11 @@ All notable changes to the Launchpad skill will be documented in this file.
 
 ### Added
 - **Package Set Management**: Added documentation and support for working with Launchpad package sets
-  - New reference: `package-sets/<distro>/<series>/<name>` in `resource-paths.md`
-  - New operation: `getSourcesIncluded` in `api-operations.md`
+  - New reference: `package-sets/<distro>/<series>/<name>` in `package-sets.md`
+  - New operation: `getSourcesIncluded`
   - New helper function: `lp_get_package_set_sources` in `common-workflows.sh`
 - **Package Upload Monitoring**: Added support for checking package uploads in distributions
-  - New operation: `getPackageUploads` in `api-operations.md`
+  - New operation: `getPackageUploads` in `series.md`
   - New helper function: `lp_check_package_uploads` in `common-workflows.sh`
   - New reference: `Package Upload Monitoring` in key capabilities
 
@@ -71,7 +88,7 @@ All notable changes to the Launchpad skill will be documented in this file.
 - Command options and error handling guidance
 
 ### References
-- `resource-paths.md`: Complete guide to Launchpad API resource paths
+- Modular API Reference Guides:
   - People & Teams (person, team, memberships)
   - Bugs & Bug Tracking (bugs, tasks, messages, attachments)
   - Projects & Products (projects, series, branches)
@@ -83,17 +100,9 @@ All notable changes to the Launchpad skill will be documented in this file.
   - Collections & Pagination patterns
   - Resource link fields
   - Discovery tips and common mistakes
-
-- `api-operations.md`: Web service operations and query parameters
-  - Common operations: searchTasks, newMessage, subscribe, getFileUrls, retry, cancel
-  - Bug operations with all filter options
-  - Build operations (getFileUrls, retry, cancel)
-  - PPA operations (copyPackage, syncSource, deletePackage)
-  - Person/Team operations (getByEmail, findTeam)
-  - Query parameters (ws.show, ws.start, ws.size)
-  - Collection filters (dates, status, importance, tags)
+  - Web service operations and query parameters
   - Sorting and pagination
-  - Three workflow pattern examples
+  - Workflow pattern examples
 
 ### Scripts
 - `common-workflows.sh`: Reusable bash function library

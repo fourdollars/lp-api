@@ -1,15 +1,21 @@
 {
   "name": "launchpad",
   "description": "Interact with Canonical's Launchpad platform (launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad resources.",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "manifestVersion": "1",
   "context": [
     "GEMINI.md",
     "assets/launchpad-wadl.xml",
     "scripts/wadl-helper.sh",
     "scripts/list_series.sh",
-    "references/api-operations.md",
-    "references/resource-paths.md",
+    "references/archive.md",
+    "references/basics.md",
+    "references/bugs.md",
+    "references/git.md",
+    "references/livefs.md",
+    "references/package-sets.md",
+    "references/people.md",
+    "references/project.md",
     "references/series.md",
     "scripts/common-workflows.sh"
   ]

@@ -86,6 +86,18 @@ lp-api get ubuntu ws.op==searchTasks series==focal
 lp-api get ubuntu ws.op==searchTasks series==focal series==jammy
 ```
 
+### Check Package Uploads
+Check if a specific package has been uploaded to a series.
+
+**Operation:** `getPackageUploads`
+
+```bash
+lp-api get ubuntu/jammy \
+  ws.op==getPackageUploads \
+  name=="firefox" \
+  ws.show==total_size
+```
+
 ### Build Operations
 
 ```bash
