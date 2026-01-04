@@ -16,7 +16,7 @@ fi
 # 2. Intercepts write operations for DRY RUN unless on staging
 # 3. Uses local binary
 lp-api() {
-    local args=("$@")
+    local args=($@)
     local flag=$STAGING_FLAG
     local method="$1"
     local LP_API_BIN="$SCRIPT_DIR/../lp-api"
@@ -214,7 +214,7 @@ fi
 echo "Testing lp_download_build_artifacts $build_link (Dry Run)..."
 # Mock lp-api download to avoid large downloads
 lp-api() {
-    local args=("$@")
+    local args=($@)
     if [[ "$1" == "download" ]]; then
         echo "DRY RUN: lp-api download ${args[1]}"
         return 0
@@ -251,7 +251,7 @@ assert_pass "lp_wait_for_build runs"
 
 # Restore wrapper
 lp-api() {
-    local args=("$@")
+    local args=($@)
     local flag=$STAGING_FLAG
     local method="$1"
     local LP_API_BIN="$SCRIPT_DIR/../lp-api"
@@ -386,5 +386,166 @@ fi
 
 lp_list_series cloud-init > /dev/null 2>&1
 assert_pass "lp_list_series cloud-init runs"
+
+# lp_follow_link
+echo "Testing lp_follow_link..."
+# Get a bug and follow its self_link (should just return the same bug json)
+output=$(lp-api get bugs/1 | lp_follow_link self_link)
+if [[ $? -eq 0 ]] && echo "$output" | jq -e '.id == 1' > /dev/null; then
+    echo "PASS: lp_follow_link"
+else
+    echo "FAIL: lp_follow_link"
+    echo "$output"
+    exit 1
+fi
+
+# lp_get_field
+echo "Testing lp_get_field..."
+output=$(lp_get_field bugs/1 title)
+if [[ $? -eq 0 ]] && [[ "$output" == *"Microsoft"* ]]; then
+    # Bug 1 is "Microsoft has a majority market share"
+    echo "PASS: lp_get_field"
+else
+    echo "FAIL: lp_get_field"
+    echo "Output: $output"
+    exit 1
+fi
+
+# lp_pretty
+echo "Testing lp_pretty..."
+output=$(echo '{"a":1}' | lp_pretty)
+if [[ $? -eq 0 ]] && echo "$output" | grep -q '"a": 1'; then
+    echo "PASS: lp_pretty"
+else
+    echo "FAIL: lp_pretty"
+    echo "$output"
+    exit 1
+fi
+
+# lp_wadl
+echo "Testing lp_wadl..."
+output=$(lp_wadl)
+if [[ $? -eq 0 ]] && echo "$output" | grep -Ei -q "<(wadl:)?application"; then
+    echo "PASS: lp_wadl"
+else
+    # Check if any of the default paths exist
+    wadl_exists=false
+    search_paths=(
+        "launchpad/scripts/../assets/launchpad-wadl.xml"
+        "/usr/lib/python3/dist-packages/launchpadlib/testing/testing-wadl.xml"
+        "launchpad/assets/launchpad-wadl.xml"
+        "assets/launchpad-wadl.xml"
+        "launchpad-wadl.xml"
+    )
+    for path in "${search_paths[@]}"; do
+        if [ -f "$path" ]; then
+            wadl_exists=true
+            break
+        fi
+    done
+
+    if [ "$wadl_exists" = true ]; then
+        echo "FAIL: lp_wadl (File exists but could not be read or parsed correctly)"
+        exit 1
+    else
+        echo "SKIP: lp_wadl (WADL file not found in common locations, skipping test)"
+    fi
+fi
+
+# lp_extract_web_links
+echo "Testing lp_extract_web_links..."
+# Simulate search result
+mock_search_result='{
+  "entries": [
+    {"web_link": "http://example.com/1"},
+    {"web_link": "http://example.com/2"}
+  ]
+}'
+output=$(echo "$mock_search_result" | lp_extract_web_links)
+if [[ $? -eq 0 ]] && echo "$output" | grep -q "http://example.com/1" && echo "$output" | grep -q "http://example.com/2"; then
+    echo "PASS: lp_extract_web_links"
+else
+    echo "FAIL: lp_extract_web_links"
+    echo "$output"
+    exit 1
+fi
+
+# lp_show_links
+echo "Testing lp_show_links..."
+mock_resource='{
+  "self_link": "http://api/self",
+  "other_link": "http://api/other",
+  "name": "not a link"
+}'
+output=$(echo "$mock_resource" | lp_show_links)
+if [[ $? -eq 0 ]] && echo "$output" | grep -q "self_link" && echo "$output" | grep -q "other_link" && ! echo "$output" | grep -q "name"; then
+    echo "PASS: lp_show_links"
+else
+    echo "FAIL: lp_show_links"
+    echo "$output"
+    exit 1
+fi
+
+# lp_paginate_all
+echo "Testing lp_paginate_all..."
+# This is tricky to test with real API without fetching too much. 
+# We'll test it by mocking the response or using a resource with few items.
+# Let's try to mock it by overriding lp-api temporarily for this test.
+# The function calls: lp-api get $resource ws.op==$operation ws.start==$start ws.size==$size
+lp-api() {
+    local args=($@)
+    # check for ws.start
+    local start=0
+    for arg in "${args[@]}"; do
+        if [[ "$arg" == ws.start==* ]]; then
+            start=${arg#ws.start==}
+        fi
+done
+
+    if [[ "$start" -eq 0 ]]; then
+        echo '{"entries": [{"id": 1}, {"id": 2}], "total_size": 3}'
+    elif [[ "$start" -eq 100 ]]; then
+        echo '{"entries": [{"id": 3}], "total_size": 3}'
+    else
+        echo '{"entries": [], "total_size": 3}'
+    fi
+}
+
+output=$(lp_paginate_all "mock_resource" "mock_op" | jq -c .id)
+count=$(echo "$output" | wc -l)
+if [[ $count -eq 3 ]]; then
+    echo "PASS: lp_paginate_all (Mocked)"
+else
+    echo "FAIL: lp_paginate_all (Mocked)"
+    echo "Count: $count"
+    echo "Output: $output"
+    exit 1
+fi
+
+# Restore wrapper
+lp-api() {
+    local args=($@)
+    local flag=$STAGING_FLAG
+    local method="$1"
+    local LP_API_BIN="$SCRIPT_DIR/../lp-api"
+    if [ ! -f "$LP_API_BIN" ]; then
+        LP_API_BIN="lp-api"
+    fi
+    for arg in "${args[@]}"; do
+        if [[ "$arg" == "bugs/1" || "$arg" == "ubuntu" || "$arg" == "cloud-init" ]]; then
+            flag=""
+            break
+        fi
+    done
+    case "$method" in
+        post|patch|put|delete)
+            if [[ -z "$flag" ]]; then
+                echo "DRY RUN: lp-api $flag ${args[*]}"
+                return 0
+            fi
+            ;;
+    esac
+    "$LP_API_BIN" $flag "${args[@]}"
+}
 
 echo -e "\n=== Test Suite Complete ==="

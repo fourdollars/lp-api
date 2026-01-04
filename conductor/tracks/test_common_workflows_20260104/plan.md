@@ -26,8 +26,8 @@ Verify and repair all functions for builds, packages, PPAs, and teams.
 ## Phase 4: Utility and Helper Verification
 Verify general utility functions and final cleanup.
 
-- [ ] Task: Implement tests for Utility Functions: `lp_follow_link`, `lp_get_field`, `lp_list_series`, `lp_pretty`, `lp_wadl`, `lp_extract_web_links`, `lp_show_links`, and `lp_paginate_all`.
-- [ ] Task: Review all "Example Workflows" in the script and remove/update as needed.
-- [ ] Task: Update the "Usage" help message in `common-workflows.sh` to reflect the verified function list.
-- [ ] Task: Run the full `tests/test_common_workflows.sh` suite to ensure 100% coverage of remaining functions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Utility and Helper Verification' (Protocol in workflow.md)
+- [x] Task: Implement tests for Utility Functions: `lp_follow_link`, `lp_get_field`, `lp_list_series`, `lp_pretty`, `lp_wadl`, `lp_extract_web_links`, `lp_show_links`, and `lp_paginate_all`.
+- [x] Task: Review all "Example Workflows" in the script and remove/update as needed.
+- [x] Task: Update the "Usage" help message in `common-workflows.sh` to reflect the verified function list.
+- [x] Task: Run the full `tests/test_common_workflows.sh` suite to ensure 100% coverage of remaining functions.
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Utility and Helper Verification' (Protocol in workflow.md)

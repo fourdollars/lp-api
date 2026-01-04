@@ -390,11 +390,27 @@ lp_pretty() {
 # Read bundled WADL to help skill decide API operations
 # Usage: lp_wadl [path-to-wadl]
 lp_wadl() {
-    local wadl_path=${1:-"$(dirname "${BASH_SOURCE[0]}")/../assets/launchpad-wadl.xml"}
-    if [ -f "$wadl_path" ]; then
+    local wadl_path=$1
+    if [ -n "$wadl_path" ] && [ -f "$wadl_path" ]; then
         cat "$wadl_path"
         return 0
     fi
+
+    local search_paths=(
+        "$(dirname "${BASH_SOURCE[0]}")/../assets/launchpad-wadl.xml"
+        "/usr/lib/python3/dist-packages/launchpadlib/testing/testing-wadl.xml"
+        "launchpad/assets/launchpad-wadl.xml"
+        "assets/launchpad-wadl.xml"
+        "launchpad-wadl.xml"
+    )
+
+    for path in "${search_paths[@]}"; do
+        if [ -f "$path" ]; then
+            cat "$path"
+            return 0
+        fi
+    done
+
     echo ""
     return 1
 }
@@ -451,9 +467,10 @@ lp_paginate_all() {
 
 # Example: Monitor builds for a livefs
 example_monitor_builds() {
-    local livefs="~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu"
+    local series=${1:-"noble"}
+    local livefs="~ubuntu-cdimage/+livefs/ubuntu/${series}/ubuntu"
     
-    echo "=== Latest Build ==="
+    echo "=== Latest Build for ${series} ==="
     lp_latest_build "$livefs" | jq '{
         id: .id,
         state: .buildstate,
@@ -482,9 +499,10 @@ example_bug_triage() {
 
 # Example: Download latest Ubuntu artifacts
 example_download_latest_ubuntu() {
-    local livefs="~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu"
+    local series=${1:-"noble"}
+    local livefs="~ubuntu-cdimage/+livefs/ubuntu/${series}/ubuntu"
     
-    echo "Getting latest build..."
+    echo "Getting latest build for ${series}..."
     local build_link
     build_link=$(lp_latest_build "$livefs" | jq -r '.self_link')
     
@@ -570,7 +588,7 @@ Examples:
   lp_search_bugs ubuntu "New" "High" focal jammy
 
   # Download artifacts from latest build
-  lp_download_build_artifacts "~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu/+build/12345"
+  lp_download_build_artifacts "~ubuntu-cdimage/+livefs/ubuntu/noble/ubuntu/+build/12345"
 
   # Get team members
   lp_team_members ubuntu-core-dev
