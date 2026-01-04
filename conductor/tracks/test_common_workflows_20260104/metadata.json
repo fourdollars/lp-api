@@ -1,0 +1,8 @@
+{
+  "track_id": "test_common_workflows_20260104",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-01-04T12:00:00Z",
+  "updated_at": "2026-01-04T12:00:00Z",
+  "description": "Test all functions in common-workflows.sh and fix it or remove it when it is unnecessary."
+}
