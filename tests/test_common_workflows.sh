@@ -487,20 +487,31 @@ else
 fi
 
 # lp_paginate_all
-echo "Testing lp_paginate_all..."
-# This is tricky to test with real API without fetching too much. 
-# We'll test it by mocking the response or using a resource with few items.
+echo "Testing lp_paginate_all (Real - first 110 bugs)..."
+# This will fetch 2 pages (100 + 10)
+output=$(lp_paginate_all "linux" "searchTasks" "status==New" | head -n 110)
+count=$(echo "$output" | wc -l)
+if [[ $count -eq 110 ]]; then
+    echo "PASS: lp_paginate_all (Real)"
+else
+    echo "FAIL: lp_paginate_all (Real)"
+    echo "Count: $count (Expected 110)"
+    exit 1
+fi
+
+# lp_paginate_all (Mocked for logic verification)
+echo "Testing lp_paginate_all (Mocked for logic)..."
 # Let's try to mock it by overriding lp-api temporarily for this test.
 # The function calls: lp-api get $resource ws.op==$operation ws.start==$start ws.size==$size
 lp-api() {
-    local args=($@)
+    local args=("$@")
     # check for ws.start
     local start=0
     for arg in "${args[@]}"; do
         if [[ "$arg" == ws.start==* ]]; then
             start=${arg#ws.start==}
         fi
-done
+    done
 
     if [[ "$start" -eq 0 ]]; then
         echo '{"entries": [{"id": 1}, {"id": 2}], "total_size": 3}'
@@ -524,7 +535,7 @@ fi
 
 # Restore wrapper
 lp-api() {
-    local args=($@)
+    local args=("$@")
     local flag=$STAGING_FLAG
     local method="$1"
     local LP_API_BIN="$SCRIPT_DIR/../lp-api"
