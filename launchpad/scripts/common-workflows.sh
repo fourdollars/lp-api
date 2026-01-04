@@ -85,7 +85,8 @@ lp_bug_update_tags() {
     local tags=("$@")
     
     # Convert to JSON array
-    local json_tags=$(printf '%s\n' "${tags[@]}" | jq -R . | jq -s .)
+    local json_tags
+    json_tags=$(printf '%s\n' "${tags[@]}" | jq -R . | jq -s .)
     
     lp-api patch "bugs/${bug_id}" "tags:=${json_tags}"
 }
@@ -151,7 +152,8 @@ lp_download_build_artifacts() {
     local build=$1
     
     echo "Getting artifact URLs for $build..."
-    local urls=$(lp-api get "$build" ws.op==getFileUrls | jq -r '.[]')
+    local urls
+    urls=$(lp-api get "$build" ws.op==getFileUrls | jq -r '.[]')
     
     if [ -z "$urls" ]; then
         echo "No artifacts found for build"
@@ -175,8 +177,9 @@ lp_wait_for_build() {
     
     echo "Waiting for build to complete: $build"
     
-    while [ $elapsed -lt $timeout ]; do
-        local state=$(lp_build_status "$build")
+    while [ "$elapsed" -lt "$timeout" ]; do
+        local state
+        state=$(lp_build_status "$build")
         echo "[$elapsed s] Build state: $state"
         
         case "$state" in
@@ -418,9 +421,12 @@ lp_paginate_all() {
             cmd="$cmd $filter"
         done
         
-        local result=$(eval "$cmd")
-        local entries=$(echo "$result" | jq '.entries')
-        local count=$(echo "$entries" | jq 'length')
+        local result
+        result=$(eval "$cmd")
+        local entries
+        entries=$(echo "$result" | jq '.entries')
+        local count
+        count=$(echo "$entries" | jq 'length')
         
         if [ "$count" -eq 0 ]; then
             has_more=false
@@ -471,11 +477,13 @@ example_download_latest_ubuntu() {
     local livefs="~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu"
     
     echo "Getting latest build..."
-    local build_link=$(lp_latest_build "$livefs" | jq -r '.self_link')
+    local build_link
+    build_link=$(lp_latest_build "$livefs" | jq -r '.self_link')
     
     echo "Build: $build_link"
     
-    local state=$(lp_build_status "$build_link")
+    local state
+    state=$(lp_build_status "$build_link")
     echo "State: $state"
     
     if [ "$state" = "Successfully built" ]; then
