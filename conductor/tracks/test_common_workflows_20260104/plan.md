@@ -4,7 +4,7 @@
 Prepare the testing environment and remove deprecated files.
 
 - [x] Task: Rename `tests/test_lp_list_series.sh` to `tests/test_common_workflows.sh` 002f479
-- [ ] Task: Delete deprecated `launchpad/scripts/list_series.sh`
+- [x] Task: Delete deprecated `launchpad/scripts/list_series.sh` 2c5a6f1
 - [ ] Task: Update `tests/test_common_workflows.sh` to source the correct path and initialize a basic test structure for all categories
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup and Consolidation' (Protocol in workflow.md)
 
