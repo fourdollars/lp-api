@@ -271,7 +271,7 @@ lp_get_package_set_sources() {
     
     lp-api get "package-sets/${distro}/${series}/${pkgset}" \
         ws.op==getSourcesIncluded | \
-        jq -r '.entries[]'
+        jq -r 'if type == "array" then .[] else .entries[] end'
 }
 
 # ============================================================================

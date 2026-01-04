@@ -18,10 +18,10 @@ Verify and repair all functions related to bug management.
 ## Phase 3: Build, Package, and PPA Verification
 Verify and repair all functions for builds, packages, PPAs, and teams.
 
-- [ ] Task: Implement tests for Build Workflows: `lp_latest_build`, `lp_build_status`, `lp_download_build_artifacts`, `lp_failed_builds`, and `lp_wait_for_build` (mocking or short timeout).
-- [ ] Task: Implement tests for Package Workflows: `lp_package_info`, `lp_package_bugs`, `lp_check_package_uploads`, `lp_get_package_set_sources`.
-- [ ] Task: Implement tests for PPA and Person/Team Workflows: `lp_ppa_packages`, `lp_ppa_copy_package` (write op check), `lp_person_info`, `lp_team_members`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Build, Package, and PPA Verification' (Protocol in workflow.md)
+- [x] Task: Implement tests for Build Workflows: `lp_latest_build`, `lp_build_status`, `lp_download_build_artifacts`, `lp_failed_builds`, and `lp_wait_for_build` (mocking or short timeout).
+- [x] Task: Implement tests for Package Workflows: `lp_package_info`, `lp_package_bugs`, `lp_check_package_uploads`, `lp_get_package_set_sources`.
+- [x] Task: Implement tests for PPA and Person/Team Workflows: `lp_ppa_packages`, `lp_ppa_copy_package` (write op check), `lp_person_info`, `lp_team_members`.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Build, Package, and PPA Verification' (Protocol in workflow.md)
 
 ## Phase 4: Utility and Helper Verification
 Verify general utility functions and final cleanup.

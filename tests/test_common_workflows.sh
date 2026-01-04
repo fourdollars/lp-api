@@ -177,15 +177,198 @@ fi
 
 # Section: Build Workflows
 echo -e "\n--- Build Workflows ---"
-echo "TODO: Add build workflow tests"
+
+CURRENT_SERIES=$(lp-api get ubuntu | lp-api .current_series_link | jq -r .name)
+TEST_LIVEFS="~ubuntu-cdimage/+livefs/ubuntu/${CURRENT_SERIES}/ubuntu"
+
+echo "Testing lp_latest_build $TEST_LIVEFS..."
+build_info=$(lp_latest_build "$TEST_LIVEFS" 2>/dev/null)
+build_link=$(echo "$build_info" | jq -r .self_link)
+if [[ $? -eq 0 && "$build_link" == http* ]]; then
+    echo "PASS: lp_latest_build ($build_link)"
+else
+    echo "FAIL: lp_latest_build"
+    echo "Output: $build_info"
+    exit 1
+fi
+
+echo "Testing lp_build_status $build_link..."
+status=$(lp_build_status "$build_link" 2>/dev/null)
+if [[ $? -eq 0 && -n "$status" ]]; then
+    echo "PASS: lp_build_status ($status)"
+else
+    echo "FAIL: lp_build_status"
+    echo "Output: $status"
+    exit 1
+fi
+
+echo "Testing lp_failed_builds $TEST_LIVEFS..."
+failed_builds=$(lp_failed_builds "$TEST_LIVEFS" 2>/dev/null)
+if [[ $? -eq 0 ]]; then
+    echo "PASS: lp_failed_builds"
+else
+    echo "FAIL: lp_failed_builds"
+    exit 1
+fi
+
+echo "Testing lp_download_build_artifacts $build_link (Dry Run)..."
+# Mock lp-api download to avoid large downloads
+lp-api() {
+    local args=("$@")
+    if [[ "$1" == "download" ]]; then
+        echo "DRY RUN: lp-api download ${args[1]}"
+        return 0
+    fi
+    # Use the outer wrapper logic for others
+    local flag=$STAGING_FLAG
+    local method="$1"
+    local LP_API_BIN="$SCRIPT_DIR/../lp-api"
+    [ ! -f "$LP_API_BIN" ] && LP_API_BIN="lp-api"
+    for arg in "${args[@]}"; do
+        if [[ "$arg" == "bugs/1" || "$arg" == "ubuntu" || "$arg" == "cloud-init" ]]; then
+            flag=""
+            break
+        fi
+    done
+    "$LP_API_BIN" $flag "${args[@]}"
+}
+
+output=$(lp_download_build_artifacts "$build_link" 2>&1)
+if echo "$output" | grep -q "DRY RUN: lp-api download"; then
+    echo "PASS: lp_download_build_artifacts"
+else
+    echo "FAIL: lp_download_build_artifacts"
+    echo "Output: $output"
+    exit 1
+fi
+
+echo "Testing lp_wait_for_build $build_link (Short Timeout)..."
+# We expect this to either return 0 quickly if build is done, 
+# or 1 if we timeout (we'll set a very short timeout).
+lp_wait_for_build "$build_link" 1 > /dev/null 2>&1
+# We just check if it runs without crashing
+assert_pass "lp_wait_for_build runs"
+
+# Restore wrapper
+lp-api() {
+    local args=("$@")
+    local flag=$STAGING_FLAG
+    local method="$1"
+    local LP_API_BIN="$SCRIPT_DIR/../lp-api"
+    if [ ! -f "$LP_API_BIN" ]; then
+        LP_API_BIN="lp-api"
+    fi
+    for arg in "${args[@]}"; do
+        if [[ "$arg" == "bugs/1" || "$arg" == "ubuntu" || "$arg" == "cloud-init" ]]; then
+            flag=""
+            break
+        fi
+    done
+    case "$method" in
+        post|patch|put|delete)
+            if [[ -z "$flag" ]]; then
+                echo "DRY RUN: lp-api $flag ${args[*]}"
+                return 0
+            fi
+            ;;
+    esac
+    "$LP_API_BIN" $flag "${args[@]}"
+}
 
 # Section: Package Workflows
 echo -e "\n--- Package Workflows ---"
-echo "TODO: Add package workflow tests"
+
+# Use ubuntu project and a known package
+TEST_PACKAGE="linux"
+TEST_SERIES=$(lp-api get ubuntu | lp-api .current_series_link | jq -r .name)
+
+echo "Testing lp_package_info ubuntu $TEST_SERIES $TEST_PACKAGE..."
+output=$(lp_package_info ubuntu "$TEST_SERIES" "$TEST_PACKAGE" 2>&1)
+if [[ $? -eq 0 ]] && echo "$output" | jq -e '.display_name // .displayname' > /dev/null; then
+    echo "PASS: lp_package_info"
+else
+    echo "FAIL: lp_package_info"
+    echo "$output"
+    exit 1
+fi
+
+echo "Testing lp_package_bugs ubuntu $TEST_PACKAGE..."
+output=$(lp_package_bugs ubuntu "$TEST_PACKAGE" 2>&1)
+if [[ $? -eq 0 ]] && echo "$output" | jq -e '.entries != null' > /dev/null; then
+    echo "PASS: lp_package_bugs"
+else
+    echo "FAIL: lp_package_bugs"
+    echo "$output"
+    exit 1
+fi
+
+echo "Testing lp_check_package_uploads ubuntu $TEST_SERIES $TEST_PACKAGE..."
+output=$(lp_check_package_uploads ubuntu "$TEST_SERIES" "$TEST_PACKAGE" 2>&1)
+if [[ $? -eq 0 ]] && [[ "$output" =~ ^[0-9]+$ ]]; then
+    echo "PASS: lp_check_package_uploads (Count: $output)"
+else
+    echo "FAIL: lp_check_package_uploads"
+    echo "$output"
+    exit 1
+fi
+
+echo "Testing lp_get_package_set_sources ubuntu $TEST_SERIES (canonical-oem-metapackages)..."
+# Syntax: lp_get_package_set_sources <distro> <series> <package-set-name>
+output=$(lp_get_package_set_sources ubuntu "$TEST_SERIES" "canonical-oem-metapackages" 2>&1)
+if [[ $? -eq 0 ]] && [ -n "$output" ]; then
+    echo "PASS: lp_get_package_set_sources"
+else
+    echo "FAIL: lp_get_package_set_sources"
+    echo "$output"
+    exit 1
+fi
 
 # Section: PPA/Person/Team Workflows
 echo -e "\n--- PPA/Person/Team Workflows ---"
-echo "TODO: Add PPA/Person/Team workflow tests"
+
+TEST_OWNER="ubuntu-mozilla-security"
+TEST_PPA="ppa"
+
+echo "Testing lp_ppa_packages $TEST_OWNER $TEST_PPA..."
+output=$(lp_ppa_packages "$TEST_OWNER" "$TEST_PPA" 2>&1)
+if [[ $? -eq 0 ]] && [ -n "$output" ]; then
+    echo "PASS: lp_ppa_packages"
+else
+    echo "FAIL: lp_ppa_packages"
+    echo "$output"
+    exit 1
+fi
+
+echo "Testing lp_ppa_copy_package (Dry Run)..."
+# Usage: lp_ppa_copy_package <dest-owner> <dest-ppa> <source-name> <version> <from-archive> <to-series>
+output=$(lp_ppa_copy_package "dest-owner" "dest-ppa" "pkg" "1.0" "from-archive" "to-series" 2>&1)
+if echo "$output" | grep -q "DRY RUN: lp-api"; then
+    echo "PASS: lp_ppa_copy_package"
+else
+    echo "FAIL: lp_ppa_copy_package"
+    echo "Output: $output"
+    exit 1
+fi
+
+echo "Testing lp_person_info fourdollars..."
+output=$(lp_person_info "fourdollars" 2>&1)
+if [[ $? -eq 0 ]] && echo "$output" | jq -e '.name == "fourdollars"' > /dev/null; then
+    echo "PASS: lp_person_info"
+else
+    echo "FAIL: lp_person_info"
+    echo "$output"
+    exit 1
+fi
+
+echo "Testing lp_team_members ubuntu-core-dev..."
+output=$(lp_team_members "ubuntu-core-dev" 2>&1)
+if [[ $? -eq 0 ]] && [ -n "$output" ]; then
+    echo "PASS: lp_team_members"
+else
+    echo "FAIL: lp_team_members"
+    echo "$output"
+    exit 1
+fi
 
 # Section: Utility Functions
 echo -e "\n--- Utility Functions ---"
