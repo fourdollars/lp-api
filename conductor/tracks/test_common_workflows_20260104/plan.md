@@ -23,7 +23,7 @@ Verify and repair all functions for builds, packages, PPAs, and teams.
 - [x] Task: Implement tests for PPA and Person/Team Workflows: `lp_ppa_packages`, `lp_ppa_copy_package` (write op check), `lp_person_info`, `lp_team_members`.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Build, Package, and PPA Verification' (Protocol in workflow.md)
 
-## Phase 4: Utility and Helper Verification
+## Phase 4: Utility and Helper Verification [checkpoint: 3ac46a7]
 Verify general utility functions and final cleanup.
 
 - [x] Task: Implement tests for Utility Functions: `lp_follow_link`, `lp_get_field`, `lp_list_series`, `lp_pretty`, `lp_wadl`, `lp_extract_web_links`, `lp_show_links`, and `lp_paginate_all`.
