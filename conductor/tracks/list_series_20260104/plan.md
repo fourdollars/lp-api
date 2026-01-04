@@ -17,6 +17,6 @@
 
 ## Phase 3: Refinement and Documentation
 - [x] Task: Refactor the `lp_list_series` implementation for clarity and error handling (e.g., check if `lp-api` is available). 7351e6b
-- [ ] Task: Update the usage information at the end of `common-workflows.sh` to include `lp_list_series`.
+- [x] Task: Update the usage information at the end of `common-workflows.sh` to include `lp_list_series`. 1d03367
 - [ ] Task: Verify final output matches the project's code style guidelines.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Refinement and Documentation' (Protocol in workflow.md)
