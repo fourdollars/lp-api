@@ -21,7 +21,8 @@ All lp-api commands suggested by this skill MUST be validated against assets/lau
 - Querying and downloading build artifacts
 - **Package Set Management**: Querying package sets and their included sources
 - **Package Upload Monitoring**: Checking for package uploads in distribution series
-- **Bug Analysis**: Checking for specific tags and task statuses
+- **Bug Analysis**: Checking for specific tags, task statuses, and listing all tasks
+- **Utility Helpers**: Extracting single fields from any resource
 
 ## Core Capabilities
 

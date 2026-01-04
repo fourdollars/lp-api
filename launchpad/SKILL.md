@@ -2,7 +2,7 @@
 name: launchpad
 description: Interact with Canonical's Launchpad platform (launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad resources. Triggered by mentions of Launchpad, Ubuntu development, package builds, or bug tracking on launchpad.net.
 metadata:
-  version: "1.0.3"
+  version: "1.0.4"
 ---
 
 # Launchpad
@@ -23,7 +23,8 @@ All lp-api commands suggested by this skill MUST be validated against launchpad/
 - Querying and downloading build artifacts
 - **Package Set Management**: Querying package sets and their included sources
 - **Package Upload Monitoring**: Checking for package uploads in distribution series
-- **Bug Analysis**: Checking for specific tags and task statuses
+- **Bug Analysis**: Checking for specific tags, task statuses, and listing all tasks
+- **Utility Helpers**: Extracting single fields from any resource
 
 ## Core Capabilities
 

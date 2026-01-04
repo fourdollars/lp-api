@@ -115,6 +115,15 @@ lp_bug_task_status() {
         jq -r --arg target "$target" '.entries[] | select(.bug_target_name == $target) | .status'
 }
 
+# Get all tasks for a bug
+# Usage: lp_get_bug_tasks <bug-id>
+lp_get_bug_tasks() {
+    local bug_id=$1
+    lp-api get "bugs/${bug_id}" | \
+        lp-api .bug_tasks_collection_link | \
+        jq -r '.entries[] | "\(.bug_target_name): \(.status)"'
+}
+
 # ============================================================================
 # BUILD WORKFLOWS
 # ============================================================================
@@ -324,6 +333,14 @@ lp_follow_link() {
     lp-api ".${field}"
 }
 
+# Get a single field from a resource
+# Usage: lp_get_field <resource> <field-name>
+lp_get_field() {
+    local resource=$1
+    local field=$2
+    lp-api get "$resource" | jq -r ".${field}"
+}
+
 # Pretty print JSON from lp-api
 # Usage: lp-api get resource | lp_pretty
 lp_pretty() {
@@ -458,6 +475,9 @@ Bug Workflows:
   lp_bug_comment <bug-id> <message>
   lp_bug_update_tags <bug-id> <tag1> [tag2]...
   lp_bug_subscribe <bug-id>
+  lp_bug_has_tag <bug-id> <tag>
+  lp_bug_task_status <bug-id> <target-name>
+  lp_get_bug_tasks <bug-id>
 
 Build Workflows:
   lp_latest_build <livefs-path>
@@ -469,6 +489,10 @@ Build Workflows:
 Package Workflows:
   lp_package_info <distro> <series> <package-name>
   lp_package_bugs <distro> <package-name> [status]
+  lp_check_package_uploads <distro> <series> <package-name>
+
+Package Set Workflows:
+  lp_get_package_set_sources <distro> <series> <package-set-name>
 
 PPA Workflows:
   lp_ppa_packages <owner> <ppa-name>
@@ -480,6 +504,7 @@ Person/Team Workflows:
 
 Utility Functions:
   lp_follow_link <field-name>
+  lp_get_field <resource> <field-name>
   lp_pretty
   lp_extract_web_links
   lp_show_links

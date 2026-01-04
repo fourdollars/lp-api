@@ -2,6 +2,15 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.0.4] - 2026-01-04
+
+### Added
+- **Bug Workflow Helpers**: Added helper function to list all tasks for a bug
+  - `lp_get_bug_tasks`: List all tasks (targets and statuses) for a specific bug
+- **Utility Helpers**: Added generic field extraction helper
+  - `lp_get_field`: Extract a single top-level field from any resource
+- **Documentation**: Updated `common-workflows.sh` help output to include all recent functions
+
 ## [1.0.3] - 2026-01-04
 
 ### Added
