@@ -2,7 +2,7 @@
 
 ## Phase 1: Preparation and Testing (TDD Red Phase)
 - [x] Task: Create a reproduction/test script `tests/test_lp_list_series.sh` to verify the new function. d7d900a
-- [ ] Task: Write failing tests in `tests/test_lp_list_series.sh` that attempt to call `lp_list_series` and verify the tabular output format.
+- [x] Task: Write failing tests in `tests/test_lp_list_series.sh` that attempt to call `lp_list_series` and verify the tabular output format. 2c79618
 - [ ] Task: Confirm tests fail as the function does not yet exist.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Preparation and Testing' (Protocol in workflow.md)
 
