@@ -526,75 +526,103 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 Launchpad API Workflow Functions
 
 Usage: source this file in your scripts
-
     source common-workflows.sh
-    
+
+Description:
+  This script provides a collection of shell functions to interact with the
+  Launchpad API using the 'lp-api' tool. It simplifies common tasks like
+  bug management, build monitoring, and package queries.
+
 Available Functions:
 
-Bug Workflows:
+  [Bug Workflows]
   lp_bug_info <bug-id>
+      Get details (ID, title, status, tags, etc.) for a specific bug.
   lp_search_bugs <project> [status] [importance] [tags...]
+      Search bugs in a project. Status/Importance are optional (use "" to skip).
   lp_count_bugs <project> [status] [importance] [tags...]
+      Get the total count of bugs matching the criteria.
   lp_bug_comment <bug-id> <message>
+      Post a new comment to a bug.
   lp_bug_update_tags <bug-id> <tag1> [tag2]...
-  lp_bug_subscribe <bug-id>
+      Replace all tags on a bug with the provided list.
+  lp_bug_subscribe <bug-id> [person-uri]
+      Subscribe a user (default: self) to a bug.
   lp_bug_has_tag <bug-id> <tag>
+      Check if a bug has a specific tag (returns true/false).
   lp_bug_task_status <bug-id> <target-name>
+      Get the status of a task for a specific target (e.g. "ubuntu").
   lp_get_bug_tasks <bug-id>
+      List all tasks and their statuses for a bug.
 
-Build Workflows:
+  [Build Workflows]
   lp_latest_build <livefs-path>
+      Get the most recent build for a LiveFS.
   lp_build_status <build-resource-path>
+      Get the current state of a build (e.g. "Successfully built").
   lp_download_build_artifacts <build-resource-path>
+      Download all files associated with a build.
   lp_wait_for_build <build-resource-path> [timeout-seconds]
+      Poll a build until it completes or times out.
   lp_failed_builds <livefs-path>
+      List links to failed builds for a LiveFS.
 
-Package Workflows:
+  [Package Workflows]
   lp_package_info <distro> <series> <package-name>
+      Get source package details for a specific series.
   lp_package_bugs <distro> <package-name> [status]
+      Search for bugs related to a source package.
   lp_check_package_uploads <distro> <series> <package-name>
+      Count upload records for a package in a series.
 
-Package Set Workflows:
+  [Package Set Workflows]
   lp_get_package_set_sources <distro> <series> <package-set-name>
+      List source packages included in a package set.
 
-PPA Workflows:
+  [PPA Workflows]
   lp_ppa_packages <owner> <ppa-name>
+      List packages published in a PPA.
   lp_ppa_copy_package <dest-owner> <dest-ppa> <source-name> <version> <from-archive> <to-series>
+      Copy a package from one archive to a PPA.
 
-Person/Team Workflows:
+  [Person/Team Workflows]
   lp_person_info <username>
+      Get public profile info for a person or team.
   lp_team_members <team-name>
+      List active members of a team.
 
-Utility Functions:
+  [Utility Functions]
   lp_follow_link <field-name>
+      Read JSON from stdin and fetch the resource URL in <field-name>.
   lp_get_field <resource> <field-name>
+      Fetch a resource and extract a specific field.
   lp_list_series [project-name]
+      List all series (releases) for a project (default: ubuntu).
   lp_pretty
+      Format JSON output (alias for `jq '.'`).
   lp_extract_web_links
+      Extract 'web_link' fields from a JSON list of entries.
   lp_show_links
+      Show all fields ending in '_link' from a resource.
   lp_paginate_all <resource> <operation> [filters...]
+      Fetch ALL results for a paginated collection (handles pagination automatically).
 
-Example Workflows:
-  example_monitor_builds
+  [Example Workflows]
+  example_monitor_builds [series]
+      Show latest and failed builds for Ubuntu (default: noble).
   example_bug_triage
-  example_download_latest_ubuntu
+      Demonstrate searching and counting bugs for triage.
+  example_download_latest_ubuntu [series]
+      Download artifacts from the latest Ubuntu LiveFS build (default: noble).
 
 Examples:
-
-  # Get info about a bug
-  lp_bug_info 1
-
-  # Search for high priority bugs with tags
+  # Search for 'New' and 'High' priority bugs in Ubuntu with tags
   lp_search_bugs ubuntu "New" "High" focal jammy
 
-  # Download artifacts from latest build
+  # Download artifacts from a specific build
   lp_download_build_artifacts "~ubuntu-cdimage/+livefs/ubuntu/noble/ubuntu/+build/12345"
 
-  # Get team members
-  lp_team_members ubuntu-core-dev
-
-  # List series for a project
-  lp_list_series ubuntu
+  # List all series for Cloud-Init
   lp_list_series cloud-init
 
 EOF
