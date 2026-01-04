@@ -2,6 +2,26 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.0.1] - 2026-01-04
+
+### Added
+- **File Upload Support**: Added comprehensive support for uploading files to Launchpad bugs and resources
+  - `addAttachment` operation documentation
+  - Automatic MIME type detection
+  - Support for patches, logs, images, and configuration files
+- **Series Management**: Added tools and documentation for working with distribution series (e.g., focal, jammy)
+  - New script: `scripts/list_series.sh` for listing active series
+  - New reference: `references/series.md` for series operations
+- **WADL Validation**: Added strict validation against Launchpad's API schema
+  - New asset: `assets/launchpad-wadl.xml` (API definition)
+  - New script: `scripts/wadl-helper.sh` for validating commands
+- **Gemini CLI Support**: Full port and optimization for Gemini CLI
+  - Added `GEMINI.md` context file
+  - Added `gemini-extension.json` manifest
+- **New Workflows**: Expanded common workflows from 3 to 5
+  - Workflow 4: Complete Bug Management (create, comment, update, subscribe)
+  - Workflow 5: Bulk Comment Addition
+
 ## [1.0.0] - 2026-01-02
 
 ### Added
