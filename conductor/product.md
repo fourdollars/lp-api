@@ -18,6 +18,7 @@ To provide a fast, scriptable, and intuitive command-line interface for interact
 
 ## Key Features
 - **Resource Querying:** Easy retrieval of Launchpad objects using predictable paths and filters.
+- **Workflow Automation:** Reusable shell functions for common tasks like listing project series and monitoring builds.
 - **State Modification:** PATCH and POST support for updating bug reports, series, and projects.
 - **File Management:** Built-in support for attaching logs, screenshots, and patches to bug reports.
 - **Build Monitoring:** Tools to track and download artifacts from LiveFS and package builds.
