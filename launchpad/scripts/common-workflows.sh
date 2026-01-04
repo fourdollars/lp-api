@@ -97,6 +97,24 @@ lp_bug_subscribe() {
     lp-api post "bugs/${bug_id}" ws.op=subscribe
 }
 
+# Check if a bug has a specific tag
+# Usage: lp_bug_has_tag <bug-id> <tag>
+lp_bug_has_tag() {
+    local bug_id=$1
+    local tag=$2
+    lp-api get "bugs/${bug_id}" | jq -r --arg tag "$tag" 'any(.tags[]; . == $tag)'
+}
+
+# Get status of a bug task for a specific target
+# Usage: lp_bug_task_status <bug-id> <target-name>
+lp_bug_task_status() {
+    local bug_id=$1
+    local target=$2
+    lp-api get "bugs/${bug_id}" | \
+        lp-api .bug_tasks_collection_link | \
+        jq -r --arg target "$target" '.entries[] | select(.bug_target_name == $target) | .status'
+}
+
 # ============================================================================
 # BUILD WORKFLOWS
 # ============================================================================

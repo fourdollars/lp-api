@@ -2,6 +2,13 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.0.3] - 2026-01-04
+
+### Added
+- **Bug Workflow Helpers**: Added helper functions for common bug checks
+  - `lp_bug_has_tag`: Check if a bug has a specific tag
+  - `lp_bug_task_status`: Get the status of a bug task for a specific target
+
 ## [1.0.2] - 2026-01-04
 
 ### Added
