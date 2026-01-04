@@ -447,15 +447,17 @@ func (lp *LaunchpadAPI) Post(resource string, args []string) (string, error) {
 		for _, arg := range args {
 			fields := strings.Split(arg, "=")
 			key := fields[0]
-			key_last := strings.Split(key, "")[len(key)-1]
+			if len(key) == 0 {
+				continue
+			}
+			key_last := key[len(key)-1:]
 			value := strings.Join(fields[1:], "=")
 			value_first := ""
 			if len(value) > 0 {
-				value_first = strings.Split(value, "")[0]
+				value_first = value[0:1]
 			}
 
-			if len(value) > 0 && value_first != "=" && key_last != ":" {
-				// Check if this is a file attachment
+			if len(value) > 0 && value_first != "=" && key_last != ":" { // Check if this is a file attachment
 				if key == "attachment" && isFileAttachment(value) {
 					filePath := extractFilePath(value)
 

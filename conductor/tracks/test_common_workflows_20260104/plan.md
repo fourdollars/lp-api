@@ -11,9 +11,9 @@ Prepare the testing environment and remove deprecated files.
 ## Phase 2: Bug Workflow Verification
 Verify and repair all functions related to bug management.
 
-- [ ] Task: Implement read-only tests for `lp_bug_info` (basic fetch), `lp_search_bugs` (querying), `lp_count_bugs` (aggregation), `lp_bug_has_tag`, `lp_bug_task_status`, and `lp_get_bug_tasks`.
-- [ ] Task: Review and verify write operations (dry-run or manual check logic): `lp_bug_comment`, `lp_bug_update_tags`, `lp_bug_subscribe`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Bug Workflow Verification' (Protocol in workflow.md)
+- [x] Task: Implement read-only tests for `lp_bug_info` (basic fetch), `lp_search_bugs` (querying), `lp_count_bugs` (aggregation), `lp_bug_has_tag`, `lp_bug_task_status`, and `lp_get_bug_tasks`.
+- [x] Task: Review and verify write operations (dry-run or manual check logic): `lp_bug_comment`, `lp_bug_update_tags`, `lp_bug_subscribe`.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Bug Workflow Verification' (Protocol in workflow.md)
 
 ## Phase 3: Build, Package, and PPA Verification
 Verify and repair all functions for builds, packages, PPAs, and teams.

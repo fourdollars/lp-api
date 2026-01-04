@@ -33,7 +33,7 @@ lp_search_bugs() {
     local project=$1
     local status=${2:-""}
     local importance=${3:-""}
-    shift 3
+    shift $(( $# < 3 ? $# : 3 ))
     local tags=("$@")
     
     local cmd="lp-api get $project ws.op==searchTasks"
@@ -55,7 +55,7 @@ lp_count_bugs() {
     local project=$1
     local status=${2:-""}
     local importance=${3:-""}
-    shift 3
+    shift $(( $# < 3 ? $# : 3 ))
     local tags=("$@")
     
     local cmd="lp-api get $project ws.op==searchTasks ws.show==total_size"
@@ -92,10 +92,18 @@ lp_bug_update_tags() {
 }
 
 # Subscribe to bug
-# Usage: lp_bug_subscribe <bug-id>
+# Usage: lp_bug_subscribe <bug-id> [person-uri]
 lp_bug_subscribe() {
     local bug_id=$1
-    lp-api post "bugs/${bug_id}" ws.op=subscribe
+    local person=$2
+    
+    if [ -z "$person" ]; then
+        # Fetch current user info and extract self_link
+        # We don't use lp_get_field here to avoid circular dependency if it were more complex
+        person=$(lp-api get people/+me | jq -r .self_link)
+    fi
+    
+    lp-api post "bugs/${bug_id}" ws.op=subscribe person="$person"
 }
 
 # Check if a bug has a specific tag
