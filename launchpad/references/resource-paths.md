@@ -167,6 +167,24 @@ ubuntu/+binary/<package-name>
 ubuntu/jammy/amd64/+binary/<package-name>
 ```
 
+### Package Sets
+```bash
+# Package sets (groups of packages)
+package-sets/<distro>/<series>/<package-set-name>
+
+# Example
+package-sets/ubuntu/jammy/canonical-oem-metapackages
+```
+
+### Package Uploads
+```bash
+# Check uploads for a specific package in a series
+<distro>/<series> ws.op==getPackageUploads name==<package-name>
+
+# Example
+ubuntu/jammy ws.op==getPackageUploads name==linux-firmware
+```
+
 ## Builds & Build Farm
 
 ### LiveFS Builds

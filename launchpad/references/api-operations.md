@@ -485,6 +485,45 @@ lp-api get ubuntu | lp-api .series_collection_link | \
   jq -r '.entries[] | select(.status=="Active Development") | "\(.name) (\(.version))"'
 ```
 
+#### getPackageUploads
+Check for package uploads in a specific series. Useful for tracking release progress.
+
+**Usage:**
+```bash
+lp-api get <distro>/<series> \
+  ws.op==getPackageUploads \
+  name==<package-name> \
+  ws.show==total_size
+```
+
+**Examples:**
+```bash
+# Check if a package has been uploaded to Jammy
+lp-api get ubuntu/jammy \
+  ws.op==getPackageUploads \
+  name==firefox \
+  ws.show==total_size
+```
+
+### Package Set Operations
+
+#### getSourcesIncluded
+List source packages included in a package set.
+
+**Usage:**
+```bash
+lp-api get package-sets/<distro>/<series>/<package-set-name> \
+  ws.op==getSourcesIncluded
+```
+
+**Examples:**
+```bash
+# Get sources in OEM metapackages set
+lp-api get package-sets/ubuntu/jammy/canonical-oem-metapackages \
+  ws.op==getSourcesIncluded | \
+  jq -r '.entries[]'
+```
+
 ## Query Parameters (ws.*)
 
 ### Control Parameters

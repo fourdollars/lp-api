@@ -2,6 +2,18 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.0.2] - 2026-01-04
+
+### Added
+- **Package Set Management**: Added documentation and support for working with Launchpad package sets
+  - New reference: `package-sets/<distro>/<series>/<name>` in `resource-paths.md`
+  - New operation: `getSourcesIncluded` in `api-operations.md`
+  - New helper function: `lp_get_package_set_sources` in `common-workflows.sh`
+- **Package Upload Monitoring**: Added support for checking package uploads in distributions
+  - New operation: `getPackageUploads` in `api-operations.md`
+  - New helper function: `lp_check_package_uploads` in `common-workflows.sh`
+  - New reference: `Package Upload Monitoring` in key capabilities
+
 ## [1.0.1] - 2026-01-04
 
 ### Added

@@ -207,6 +207,35 @@ lp_package_bugs() {
     eval "$cmd"
 }
 
+# Check package uploads in a series
+# Usage: lp_check_package_uploads <distro> <series> <package-name>
+lp_check_package_uploads() {
+    local distro=$1
+    local series=$2
+    local package=$3
+    
+    lp-api get "${distro}/${series}" \
+        ws.op==getPackageUploads \
+        name=="$package" \
+        ws.show==total_size
+}
+
+# ============================================================================
+# PACKAGE SET WORKFLOWS
+# ============================================================================
+
+# Get sources in a package set
+# Usage: lp_get_package_set_sources <distro> <series> <package-set-name>
+lp_get_package_set_sources() {
+    local distro=$1
+    local series=$2
+    local pkgset=$3
+    
+    lp-api get "package-sets/${distro}/${series}/${pkgset}" \
+        ws.op==getSourcesIncluded | \
+        jq -r '.entries[]'
+}
+
 # ============================================================================
 # PPA WORKFLOWS
 # ============================================================================

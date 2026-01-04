@@ -244,6 +244,6 @@ For issues with:
 
 ## Version
 
-Skill Version: 1.0.1
+Skill Version: 1.0.2
 Compatible with: lp-api latest
 Last Updated: 2026-01-04
