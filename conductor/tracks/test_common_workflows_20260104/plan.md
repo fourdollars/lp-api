@@ -8,12 +8,12 @@ Prepare the testing environment and remove deprecated files.
 - [x] Task: Update `tests/test_common_workflows.sh` to source the correct path and initialize a basic test structure for all categories 8c99fc5
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Setup and Consolidation' (Protocol in workflow.md) 12e2f60
 
-## Phase 2: Bug Workflow Verification
+## Phase 2: Bug Workflow Verification [checkpoint: 59615a7]
 Verify and repair all functions related to bug management.
 
 - [x] Task: Implement read-only tests for `lp_bug_info` (basic fetch), `lp_search_bugs` (querying), `lp_count_bugs` (aggregation), `lp_bug_has_tag`, `lp_bug_task_status`, and `lp_get_bug_tasks`.
 - [x] Task: Review and verify write operations (dry-run or manual check logic): `lp_bug_comment`, `lp_bug_update_tags`, `lp_bug_subscribe`.
-- [x] Task: Conductor - User Manual Verification 'Phase 2: Bug Workflow Verification' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Bug Workflow Verification' (Protocol in workflow.md) 59615a7
 
 ## Phase 3: Build, Package, and PPA Verification
 Verify and repair all functions for builds, packages, PPAs, and teams.
