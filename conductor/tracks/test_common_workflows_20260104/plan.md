@@ -30,4 +30,4 @@ Verify general utility functions and final cleanup.
 - [x] Task: Review all "Example Workflows" in the script and remove/update as needed.
 - [x] Task: Update the "Usage" help message in `common-workflows.sh` to reflect the verified function list.
 - [x] Task: Run the full `tests/test_common_workflows.sh` suite to ensure 100% coverage of remaining functions.
-- [~] Task: Conductor - User Manual Verification 'Phase 4: Utility and Helper Verification' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Utility and Helper Verification' (Protocol in workflow.md) 5f99a0c
