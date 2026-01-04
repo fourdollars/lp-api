@@ -346,6 +346,20 @@ lp_get_field() {
 lp_list_series() {
     local project=${1:-"ubuntu"}
     
+    # Check for required tools
+    if ! command -v jq &> /dev/null; then
+        echo "Error: jq is required for lp_list_series. Please install it."
+        return 1
+    fi
+    
+    # Verify project exists and get series collection link
+    local series_link
+    series_link=$(lp-api get "$project" | lp-api .series_collection_link 2>/dev/null)
+    if [ -z "$series_link" ] || [ "$series_link" == "null" ]; then
+        echo "Error: Could not find series for project '$project'"
+        return 1
+    fi
+    
     (
         echo -e "Series\tStatus\tWeb Link"
         echo -e "------\t------\t--------"
