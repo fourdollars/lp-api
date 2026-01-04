@@ -1,10 +1,10 @@
 # Plan: Add `lp_list_series` to `common-workflows.sh`
 
-## Phase 1: Preparation and Testing (TDD Red Phase)
+## Phase 1: Preparation and Testing (TDD Red Phase) [checkpoint: 591314f]
 - [x] Task: Create a reproduction/test script `tests/test_lp_list_series.sh` to verify the new function. d7d900a
 - [x] Task: Write failing tests in `tests/test_lp_list_series.sh` that attempt to call `lp_list_series` and verify the tabular output format. 2c79618
 - [x] Task: Confirm tests fail as the function does not yet exist. 89d4359
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Preparation and Testing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Preparation and Testing' (Protocol in workflow.md)
 
 ## Phase 2: Implementation (TDD Green Phase)
 - [ ] Task: Implement the `lp_list_series` function in `launchpad/scripts/common-workflows.sh`.
