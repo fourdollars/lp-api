@@ -26,7 +26,7 @@ if [[ $? -ne 0 ]]; then
 else
     echo "PASS: lp_list_series executed"
     # Check for headers
-    if echo "$output" | grep -q "Name" && echo "$output" | grep -q "Status" && echo "$output" | grep -q "Display Name"; then
+    if echo "$output" | grep -q "Series" && echo "$output" | grep -q "Status" && echo "$output" | grep -q "Web Link"; then
         echo "PASS: Found expected headers"
     else
         echo "FAIL: Missing expected headers in output"

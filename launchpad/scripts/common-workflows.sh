@@ -347,12 +347,12 @@ lp_list_series() {
     local project=${1:-"ubuntu"}
     
     (
-        echo -e "Name\tStatus\tDisplay Name\tWeb Link"
-        echo -e "----\t------\t------------\t--------"
+        echo -e "Series\tStatus\tWeb Link"
+        echo -e "------\t------\t--------"
         
         lp-api get "$project" | \
             lp-api .series_collection_link | \
-            jq -r '.entries[] | "\(.name)\t\(.status)\t\(.displayname // .display_name)\t\(.web_link)"'
+            jq -r '.entries[] | "\((.displayname // .display_name) + (if .version then " (\(.version))" else "" end))\t\(.status)\t\(.web_link)"'
     ) | column -t -s $'\t'
 }
 
