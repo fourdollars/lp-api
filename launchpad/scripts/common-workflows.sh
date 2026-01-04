@@ -346,12 +346,14 @@ lp_get_field() {
 lp_list_series() {
     local project=${1:-"ubuntu"}
     
-    echo -e "Name\tStatus\tDisplay Name\tWeb Link"
-    echo -e "----\t------\t------------\t--------"
-    
-    lp-api get "$project" | \
-        lp-api .series_collection_link | \
-        jq -r '.entries[] | "\(.name)\t\(.status)\t\(.display_name)\t\(.web_link)"'
+    (
+        echo -e "Name\tStatus\tDisplay Name\tWeb Link"
+        echo -e "----\t------\t------------\t--------"
+        
+        lp-api get "$project" | \
+            lp-api .series_collection_link | \
+            jq -r '.entries[] | "\(.name)\t\(.status)\t\(.displayname // .display_name)\t\(.web_link)"'
+    ) | column -t -s $'\t'
 }
 
 # Pretty print JSON from lp-api
