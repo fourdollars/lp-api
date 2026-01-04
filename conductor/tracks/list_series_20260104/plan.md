@@ -8,11 +8,7 @@
 
 ## Phase 2: Implementation (TDD Green Phase)
 - [x] Task: Implement the `lp_list_series` function in `launchpad/scripts/common-workflows.sh`. 0318419
-    - [x] Handle default `project="ubuntu"`.
-    - [x] Fetch project data using `lp-api get`.
-    - [x] Follow `series_collection_link`.
-    - [x] Use `jq` to format the entries into a table (Name, Status, Display Name, Web Link).
-- [ ] Task: Run the test script `tests/test_lp_list_series.sh` and verify that all tests now pass.
+- [x] Task: Run the test script `tests/test_lp_list_series.sh` and verify that all tests now pass. 893ca56
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Refinement and Documentation
