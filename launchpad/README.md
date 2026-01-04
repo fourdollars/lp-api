@@ -1,10 +1,10 @@
-# Launchpad Skill for GitHub Copilot CLI
+# Launchpad Skill for GitHub Copilot CLI & Gemini CLI
 
 A comprehensive skill for interacting with Canonical's Launchpad platform using the `lp-api` command-line tool.
 
 ## What This Skill Does
 
-This skill enables GitHub Copilot CLI to help you work with Launchpad (launchpad.net), providing:
+This skill enables AI assistants (GitHub Copilot CLI / Claude Code, Gemini CLI) to help you work with Launchpad (launchpad.net), providing:
 
 - **Bug Management**: Query, search, update, and track bugs across Ubuntu and other projects
 - **Build Monitoring**: Check build status, download artifacts, monitor CI/CD pipelines
@@ -14,7 +14,7 @@ This skill enables GitHub Copilot CLI to help you work with Launchpad (launchpad
 
 ## When to Use This Skill
 
-Copilot will automatically invoke this skill when you mention:
+The assistant will automatically invoke this skill when you mention:
 
 - Launchpad bugs, builds, or resources
 - Ubuntu/Debian package development
@@ -37,15 +37,23 @@ Copilot will automatically invoke this skill when you mention:
    lp-api -help
    ```
 
-### Install the Skill
+### Option A: Install for Gemini CLI
+
+Navigate to the directory containing this skill and run:
+
+```bash
+gemini extensions install .
+```
+
+### Option B: Install for GitHub Copilot CLI (Claude)
 
 Copy this skill directory to your Copilot skills location:
 
 ```bash
-# Option 1: Copy from lp-api project
+# Copy from lp-api project
 cp -r /path/to/lp-api/launchpad ~/.claude/skills/
 
-# Option 2: Create symlink (development)
+# OR Create symlink (development)
 ln -s /path/to/lp-api/launchpad ~/.claude/skills/launchpad
 ```
 
@@ -71,7 +79,9 @@ lp-api get people/+me
 
 ```
 launchpad/
-├── SKILL.md                          # Main skill definition
+├── SKILL.md                          # Claude Code skill definition
+├── GEMINI.md                         # Gemini CLI extension definition
+├── gemini-extension.json             # Gemini CLI manifest
 ├── references/
 │   ├── resource-paths.md             # Comprehensive API path guide
 │   └── api-operations.md             # Web service operations reference
@@ -81,20 +91,20 @@ launchpad/
 
 ## Usage Examples
 
-Once installed, interact with Copilot naturally:
+Once installed, interact with your assistant naturally:
 
 ### Example 1: Bug Investigation
 ```
-You: "Get details about Launchpad bug 1923283"
+You: "Get details about Launchpad bug 1"
 
-Copilot: [Uses skill to run lp-api get bugs/1923283]
+Assistant: [Uses skill to run lp-api get bugs/1]
 ```
 
 ### Example 2: Build Monitoring
 ```
 You: "Download artifacts from the latest Ubuntu jammy build"
 
-Copilot: [Uses skill to:
+Assistant: [Uses skill to:
   1. Find latest build from livefs
   2. Check build status
   3. Get artifact URLs
@@ -105,14 +115,14 @@ Copilot: [Uses skill to:
 ```
 You: "Find all high priority Ubuntu bugs tagged with 'jammy' and 'security'"
 
-Copilot: [Uses skill with searchTasks operation and filters]
+Assistant: [Uses skill with searchTasks operation and filters]
 ```
 
 ### Example 4: Batch Operations
 ```
 You: "Add the 'needs-review' tag to all bugs in the firefox project that mention 'crash'"
 
-Copilot: [Uses skill to:
+Assistant: [Uses skill to:
   1. Search bugs with text filter
   2. Iterate through results
   3. Update tags on each bug]
@@ -162,12 +172,6 @@ The `scripts/common-workflows.sh` file provides reusable bash functions:
 **Person/Team Workflows:**
 - `lp_person_info`, `lp_team_members`
 
-You can source this file in your scripts:
-```bash
-source ~/.claude/skills/launchpad/scripts/common-workflows.sh
-lp_bug_info 1923283
-```
-
 ## Development & Contribution
 
 ### Project Structure
@@ -182,9 +186,6 @@ This skill is part of the `lp-api` project:
 Test skill functionality:
 
 ```bash
-# Validate skill structure
-python3 ~/.claude/skills/skill-creator/scripts/quick_validate.py launchpad
-
 # Test basic operations
 lp-api get people/+me
 lp-api get bugs/1
@@ -243,6 +244,6 @@ For issues with:
 
 ## Version
 
-Skill Version: 1.0.0  
-Compatible with: lp-api latest  
-Last Updated: 2026-01-02
+Skill Version: 1.0.1
+Compatible with: lp-api latest
+Last Updated: 2026-01-04

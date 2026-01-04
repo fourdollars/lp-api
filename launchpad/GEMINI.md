@@ -9,9 +9,9 @@ description: Interact with Canonical's Launchpad platform (launchpad.net) using 
 
 This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the REST API at https://api.launchpad.net/devel.html.
 
-All lp-api commands suggested by this skill MUST be validated against launchpad/assets/launchpad-wadl.xml. Use the bundled helper launchpad/scripts/wadl-helper.sh validate <method> <resource> [params...] to check the resource, ws.op and required parameters; the skill should only provide commands that pass this validation.
+All lp-api commands suggested by this skill MUST be validated against assets/launchpad-wadl.xml. Use the bundled helper scripts/wadl-helper.sh validate <method> <resource> [params...] to check the resource, ws.op and required parameters; the skill should only provide commands that pass this validation.
 
-**Important Note:** All `lp-api` commands return JSON responses. Parse these outputs to extract meaningful information and present user-friendly summaries instead of raw JSON or commands.
+**Important Note:** All `lp-api` commands return JSON responses. To keep the chat interface clean and hide raw data from the main view, **ALWAYS** use the `-output <temp_file>` flag (or `> <temp_file>`) to write JSON responses to a temporary file instead of printing to stdout. Then use the `read_file` tool to retrieve and parse the data.
 
 **Key capabilities include:**
 - Adding comments to bugs and tasks
@@ -426,7 +426,7 @@ The tool handles OAuth authentication automatically:
 
 3. **Custom Config Path**:
    ```bash
-   lp-api -conf /path/to/config.toml get people/+me
+lp-api -conf /path/to/config.toml get people/+me
    ```
 
 ## Command Options
@@ -482,7 +482,7 @@ All responses are JSON. Common fields across resources:
 - `http_etag`: For caching/versioning
 - `*_collection_link`: Links to related collections
 
-**Output Presentation:** Always parse JSON outputs to display meaningful, user-friendly information. Execute lp-api commands internally without displaying the command itself—show only the parsed results or confirmation messages (e.g., "Successfully added comment to bug #123456" instead of the raw command and JSON). Extract key details and present them in readable formats (e.g., "Bug #123456: Title here, Status: New, Assignee: username").
+**Output Presentation:** Always parse JSON outputs to display meaningful, user-friendly information. Execute lp-api commands using the `-output` flag (or `>`) to write to a temporary file, then read that file. Do not display the raw JSON in the shell output. Extract key details and present them in readable formats (e.g., "Bug #123456: Title here, Status: New, Assignee: username").
 
 **Tip**: Use `jq` to parse and extract data:
 
