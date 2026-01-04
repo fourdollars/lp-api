@@ -341,6 +341,19 @@ lp_get_field() {
     lp-api get "$resource" | jq -r ".${field}"
 }
 
+# List all series for a project
+# Usage: lp_list_series [project-name]
+lp_list_series() {
+    local project=${1:-"ubuntu"}
+    
+    echo -e "Name\tStatus\tDisplay Name\tWeb Link"
+    echo -e "----\t------\t------------\t--------"
+    
+    lp-api get "$project" | \
+        lp-api .series_collection_link | \
+        jq -r '.entries[] | "\(.name)\t\(.status)\t\(.display_name)\t\(.web_link)"'
+}
+
 # Pretty print JSON from lp-api
 # Usage: lp-api get resource | lp_pretty
 lp_pretty() {
@@ -505,6 +518,7 @@ Person/Team Workflows:
 Utility Functions:
   lp_follow_link <field-name>
   lp_get_field <resource> <field-name>
+  lp_list_series [project-name]
   lp_pretty
   lp_extract_web_links
   lp_show_links
