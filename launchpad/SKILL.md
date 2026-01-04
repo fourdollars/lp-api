@@ -323,7 +323,7 @@ lp-api get ubuntu/+archive/primary ws.op==getPublishedSources distro_series==htt
 lp-api get ubuntu/+archive/primary ws.op==getPublishedBinaries distro_arch_series==https://api.launchpad.net/devel/ubuntu/focal/amd64
 
 # Search bugs by series
-lp-api get ubuntu ws.op==searchTasks series==focal
+lp-api get ubuntu/focal ws.op==searchTasks
 
 # Get builds for a series
 lp-api get ~ubuntu-cdimage/+livefs/ubuntu/focal/ubuntu | lp-api .builds_collection_link

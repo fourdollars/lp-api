@@ -189,7 +189,7 @@ Test skill functionality:
 # Test basic operations
 lp-api get people/+me
 lp-api get bugs/1
-lp-api get ubuntu ws.op==searchTasks ws.show==total_size
+lp-api get ubuntu/resolute ws.op==searchTasks ws.show==total_size
 ```
 
 ### Customization

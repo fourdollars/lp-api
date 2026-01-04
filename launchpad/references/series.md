@@ -80,10 +80,10 @@ lp-api get ubuntu/focal/+source/package-name
 lp-api get ubuntu/+archive/primary ws.op==getPublishedSources distro_series==https://api.launchpad.net/devel/ubuntu/focal source_name==openssl
 
 # Search bugs in a specific series
-lp-api get ubuntu ws.op==searchTasks series==focal
+lp-api get ubuntu/focal ws.op==searchTasks
 
-# Search bugs affecting multiple series
-lp-api get ubuntu ws.op==searchTasks series==focal series==jammy
+# Search bugs affecting multiple series (requires separate queries)
+# (See Workflow Examples below for iteration patterns)
 ```
 
 ### Check Package Uploads
@@ -170,13 +170,10 @@ Series are important for bug management:
 
 ```bash
 # Bugs affecting a specific series
-lp-api get ubuntu ws.op==searchTasks series==focal
-
-# Bugs affecting multiple series
-lp-api get ubuntu ws.op==searchTasks series==focal series==jammy
+lp-api get ubuntu/focal ws.op==searchTasks
 
 # High-priority bugs in focal
-lp-api get ubuntu ws.op==searchTasks series==focal importance==High
+lp-api get ubuntu/focal ws.op==searchTasks importance==High
 
 # Create bug task for specific series
 lp-api post ubuntu ws.op=createBug title="Bug title" description="Details"
@@ -216,10 +213,10 @@ lp-api get ~ubuntu-cdimage/+livefs/ubuntu/focal/ubuntu | lp-api .builds_collecti
 
 ```bash
 # Get unassigned bugs in focal
-lp-api get ubuntu ws.op==searchTasks series==focal has_no_assignee==true | jq -r '.entries[].id'
+lp-api get ubuntu/focal ws.op==searchTasks has_no_assignee==true | jq -r '.entries[].id'
 
 # Assign bugs to team for focal maintenance
-for BUG in $(lp-api get ubuntu ws.op==searchTasks series==focal status==New | jq -r '.entries[].id'); do
+for BUG in $(lp-api get ubuntu/focal ws.op==searchTasks status==New | jq -r '.entries[].id'); do
   lp-api patch "bugs/$BUG" assignee_link:='https://api.launchpad.net/devel/~ubuntu-maintainers'
 done
 ```
@@ -230,7 +227,7 @@ done
 # Compare bug counts across series
 echo "Bug counts by series:"
 for SERIES in focal jammy noble; do
-  COUNT=$(lp-api get ubuntu ws.op==searchTasks series==$SERIES ws.show==total_size | jq -r '.total_size')
+  COUNT=$(lp-api get ubuntu/$SERIES ws.op==searchTasks ws.show==total_size | jq -r '.total_size')
   echo "$SERIES: $COUNT bugs"
 done
 ```
