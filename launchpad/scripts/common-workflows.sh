@@ -559,5 +559,9 @@ Examples:
   # Get team members
   lp_team_members ubuntu-core-dev
 
+  # List series for a project
+  lp_list_series ubuntu
+  lp_list_series cloud-init
+
 EOF
 fi
