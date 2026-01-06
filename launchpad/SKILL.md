@@ -470,7 +470,7 @@ This skill includes reference documentation in `references/` directory:
 - **archive.md**: Guide to working with archives and PPAs
 - **basics.md**: General API concepts and miscellaneous resources
 - **bugs.md**: Comprehensive guide to bug tracking resources and operations
-- **git.md**: Guide to Git repositories and recipes
+- **git.md**: Guide to Git repositories, recipes, and merge proposals
 - **livefs.md**: Guide to monitoring and managing LiveFS builds
 - **package-sets.md**: Guide to managing and querying package sets
 - **people.md**: Guide to managing people, teams, and memberships

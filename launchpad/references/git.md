@@ -63,6 +63,53 @@ Manually trigger a build for a recipe.
 lp-api post ~owner/+recipe/my-recipe ws.op=performDailyBuild
 ```
 
+## Merge Proposals
+
+### List Merge Proposals
+Get merge proposals for a git repository.
+
+```bash
+lp-api get ~owner/project/+git/repo/+merge
+```
+
+### Get Merge Proposal Details
+Get specific merge proposal information including diffs and comments.
+
+```bash
+lp-api get ~owner/project/+git/repo/+merge/<proposal-id>
+```
+
+### Add Comment to Merge Proposal
+Add a review comment to a merge proposal.
+
+**Operation:** `createComment`
+**Resource:** `~owner/project/+git/repo/+merge/<proposal-id>`
+
+```bash
+lp-api post ~owner/project/+git/repo/+merge/<proposal-id> \
+  ws.op=createComment \
+  subject="Review feedback" \
+  content="Detailed review comments and suggestions..."
+```
+
+**Parameters:**
+- `subject`: Comment subject line
+- `content`: Full comment content (supports markdown formatting)
+
+### Get Merge Proposal Comments
+List all comments on a merge proposal.
+
+```bash
+lp-api get ~owner/project/+git/repo/+merge/<proposal-id>/all_comments
+```
+
+### Get Preview Diff
+View the diff for a merge proposal before merging.
+
+```bash
+lp-api get ~owner/project/+git/repo/+merge/<proposal-id>/+preview-diff/<diff-id>/diff_text
+```
+
 ## Legacy Bazaar
 Bazaar branches are accessed via: `~owner/project/branch-name`
 

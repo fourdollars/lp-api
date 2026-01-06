@@ -144,7 +144,7 @@ The `references/` directory contains topic-specific documentation:
 - **archive.md**: Archives, PPAs, copying/syncing packages.
 - **basics.md**: URL structure, pagination, date filters, sorting, miscellaneous resources (Translations, Specs).
 - **bugs.md**: Searching, creating, modifying bugs, comments, and attachments.
-- **git.md**: Hosting Git repositories and building with Recipes.
+- **git.md**: Hosting Git repositories, building with Recipes, and managing merge proposals.
 - **livefs.md**: Monitoring and managing LiveFS builds.
 - **package-sets.md**: Listing and querying package sets and sources.
 - **people.md**: Managing users, teams, and memberships.
@@ -244,6 +244,6 @@ For issues with:
 
 ## Version
 
-Skill Version: 1.1.0
+Skill Version: 1.1.1
 Compatible with: lp-api latest
-Last Updated: 2026-01-04
+Last Updated: 2026-01-06

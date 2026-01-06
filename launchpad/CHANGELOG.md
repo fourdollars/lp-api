@@ -2,6 +2,16 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.1.1] - 2026-01-06
+
+### Added
+- **Git Merge Proposals**: Added comprehensive support for working with Git merge proposals
+  - List merge proposals for repositories
+  - Get merge proposal details including diffs and comments
+  - Add review comments to merge proposals with `createComment` operation
+  - View all comments on a merge proposal
+  - Get preview diffs before merging
+
 ## [1.1.0] - 2026-01-04
 
 ### Changed
