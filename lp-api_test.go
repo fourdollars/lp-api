@@ -1,8 +1,8 @@
 package main
 
 import (
-	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 )
@@ -118,6 +118,9 @@ func Test_download(t *testing.T) {
 }
 
 func Test_fileUpload_staging(t *testing.T) {
+	// Ensure we use config file credentials, not dummy env vars from other tests
+	os.Unsetenv("LAUNCHPAD_TOKEN")
+
 	// Create a test file
 	tmpDir := t.TempDir()
 	testFile := tmpDir + "/test-upload.log"
@@ -133,7 +136,7 @@ func Test_fileUpload_staging(t *testing.T) {
 	os.Args = []string{os.Args[0]}
 	os.Args = append(os.Args, "-staging")
 	os.Args = append(os.Args, "post")
-	os.Args = append(os.Args, "bugs/1")
+	os.Args = append(os.Args, "bugs/1923283")
 	os.Args = append(os.Args, "ws.op=addAttachment")
 	os.Args = append(os.Args, "attachment=@"+testFile)
 	os.Args = append(os.Args, "comment=Integration test attachment from lp-api_test.go")
@@ -145,6 +148,9 @@ func Test_fileUpload_staging(t *testing.T) {
 }
 
 func Test_fileUpload_withDescription_staging(t *testing.T) {
+	// Ensure we use config file credentials
+	os.Unsetenv("LAUNCHPAD_TOKEN")
+
 	// Create a test file with different content
 	tmpDir := t.TempDir()
 	testFile := tmpDir + "/test-upload-2.txt"
@@ -159,7 +165,7 @@ func Test_fileUpload_withDescription_staging(t *testing.T) {
 	os.Args = []string{os.Args[0]}
 	os.Args = append(os.Args, "-staging")
 	os.Args = append(os.Args, "post")
-	os.Args = append(os.Args, "bugs/1")
+	os.Args = append(os.Args, "bugs/1923283")
 	os.Args = append(os.Args, "ws.op=addAttachment")
 	os.Args = append(os.Args, "attachment=@"+testFile)
 	os.Args = append(os.Args, "comment=Test with description field")
@@ -170,81 +176,96 @@ func Test_fileUpload_withDescription_staging(t *testing.T) {
 }
 
 func Test_fileUpload_missingComment(t *testing.T) {
-	// Create a test file
-	tmpDir := t.TempDir()
-	testFile := tmpDir + "/test-upload-error.log"
-	testContent := []byte("This should fail due to missing comment\n")
-	if err := os.WriteFile(testFile, testContent, 0644); err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
+	if os.Getenv("TEST_SUBPROCESS") == "1" {
+		// Create a test file
+		tmpDir := t.TempDir()
+		testFile := tmpDir + "/test-upload-error.log"
+		testContent := []byte("This should fail due to missing comment\n")
+		if err := os.WriteFile(testFile, testContent, 0644); err != nil {
+			t.Fatalf("Failed to create test file: %v", err)
+		}
+
+		// Create dummy config to bypass auth flow
+		configFile := tmpDir + "/dummy_config.toml"
+		configContent := []byte("oauth_consumer_key = \"foo\"\noauth_token = \"bar\"\noauth_token_secret = \"baz\"\n")
+		if err := os.WriteFile(configFile, configContent, 0644); err != nil {
+			t.Fatalf("Failed to create config file: %v", err)
+		}
+
+		// Ensure we use config file credentials
+		os.Unsetenv("LAUNCHPAD_TOKEN")
+
+		os.Args = []string{os.Args[0]}
+		os.Args = append(os.Args, "-staging")
+		os.Args = append(os.Args, "-conf", configFile)
+		os.Args = append(os.Args, "post")
+		os.Args = append(os.Args, "bugs/1923283")
+		os.Args = append(os.Args, "ws.op=addAttachment")
+		os.Args = append(os.Args, "attachment=@"+testFile)
+		// Intentionally omit comment parameter
+
+		main()
+		return
 	}
 
-	// Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
+	cmd := exec.Command(os.Args[0], "-test.run=Test_fileUpload_missingComment")
+	cmd.Env = append(os.Environ(), "TEST_SUBPROCESS=1")
+	output, err := cmd.CombinedOutput()
 
-	backupArgs := os.Args
-	defer func() {
-		os.Args = backupArgs
-		os.Stderr = oldStderr
-	}()
-
-	os.Args = []string{os.Args[0]}
-	os.Args = append(os.Args, "-staging")
-	os.Args = append(os.Args, "post")
-	os.Args = append(os.Args, "bugs/1")
-	os.Args = append(os.Args, "ws.op=addAttachment")
-	os.Args = append(os.Args, "attachment=@"+testFile)
-	// Intentionally omit comment parameter
-
-	// This should fail
-	main()
-
-	// Read stderr
-	w.Close()
-	var buf strings.Builder
-	io.Copy(&buf, r)
-	stderr := buf.String()
-
-	// Verify error message contains expected text
-	if !strings.Contains(stderr, "comment") && !strings.Contains(stderr, "required") {
-		t.Errorf("Expected error message about missing comment, got: %s", stderr)
+	// Check exit code
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		// Expected exit status 1
+		stderr := string(output)
+		if !strings.Contains(stderr, "comment") && !strings.Contains(stderr, "required") {
+			t.Errorf("Expected error message about missing comment, got: %s", stderr)
+		}
+		return
 	}
+
+	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
 func Test_fileUpload_fileNotFound(t *testing.T) {
-	// Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
+	if os.Getenv("TEST_SUBPROCESS") == "1" {
+		// Create dummy config to bypass auth flow
+		tmpDir := t.TempDir()
+		configFile := tmpDir + "/dummy_config.toml"
+		configContent := []byte("oauth_consumer_key = \"foo\"\noauth_token = \"bar\"\noauth_token_secret = \"baz\"\n")
+		if err := os.WriteFile(configFile, configContent, 0644); err != nil {
+			t.Fatalf("Failed to create config file: %v", err)
+		}
 
-	backupArgs := os.Args
-	defer func() {
-		os.Args = backupArgs
-		os.Stderr = oldStderr
-	}()
+		// Ensure we use config file credentials
+		os.Unsetenv("LAUNCHPAD_TOKEN")
 
-	os.Args = []string{os.Args[0]}
-	os.Args = append(os.Args, "-staging")
-	os.Args = append(os.Args, "post")
-	os.Args = append(os.Args, "bugs/1")
-	os.Args = append(os.Args, "ws.op=addAttachment")
-	os.Args = append(os.Args, "attachment=@/nonexistent/file.log")
-	os.Args = append(os.Args, "comment=This should fail")
+		os.Args = []string{os.Args[0]}
+		os.Args = append(os.Args, "-staging")
+		os.Args = append(os.Args, "-conf", configFile)
+		os.Args = append(os.Args, "post")
+		os.Args = append(os.Args, "bugs/1923283")
+		os.Args = append(os.Args, "ws.op=addAttachment")
+		os.Args = append(os.Args, "attachment=@/nonexistent/file.log")
+		os.Args = append(os.Args, "comment=This should fail")
 
-	// This should fail
-	main()
-
-	// Read stderr
-	w.Close()
-	var buf strings.Builder
-	io.Copy(&buf, r)
-	stderr := buf.String()
-
-	// Verify error message contains expected text
-	if !strings.Contains(stderr, "File not found") {
-		t.Errorf("Expected 'File not found' error message, got: %s", stderr)
+		main()
+		return
 	}
+
+	cmd := exec.Command(os.Args[0], "-test.run=Test_fileUpload_fileNotFound")
+	cmd.Env = append(os.Environ(), "TEST_SUBPROCESS=1")
+	output, err := cmd.CombinedOutput()
+
+	// Check exit code
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		// Expected exit status 1
+		stderr := string(output)
+		if !strings.Contains(stderr, "File not found") {
+			t.Errorf("Expected 'File not found' error message, got: %s", stderr)
+		}
+		return
+	}
+
+	t.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
 func TestIsFileAttachment(t *testing.T) {
