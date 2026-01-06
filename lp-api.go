@@ -314,6 +314,19 @@ func (lp *LaunchpadAPI) Download(fileUrl string) error {
 	if err != nil {
 		return err
 	}
+
+	// Try to get the filename from Content-Disposition header
+	if cd := resp.Header.Get("Content-Disposition"); cd != "" {
+		if _, params, err := mime.ParseMediaType(cd); err == nil {
+			if name, ok := params["filename"]; ok {
+				filename = name
+			}
+		}
+	} else if resp.Request != nil && resp.Request.URL != nil {
+		// If not found in header, use the final URL path (after redirects)
+		filename = path.Base(resp.Request.URL.Path)
+	}
+
 	length := int64(0)
 	if len(resp.Header["Content-Length"]) == 1 {
 		length, _ = strconv.ParseInt(resp.Header["Content-Length"][0], 10, 64)

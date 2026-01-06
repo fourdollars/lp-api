@@ -104,7 +104,7 @@ func Test_timeout10s(t *testing.T) {
 
 func Test_download(t *testing.T) {
 	t.Cleanup(func() {
-		os.Remove("data")
+		os.Remove("OEMpatch")
 	})
 	os.Clearenv()
 	os.Setenv("LAUNCHPAD_TOKEN", "::")
@@ -115,6 +115,10 @@ func Test_download(t *testing.T) {
 	os.Args = append(os.Args, "https://api.launchpad.net/devel/bugs/1/+attachment/26604/data")
 	main()
 	os.Args = backupArgs
+
+	if _, err := os.Stat("OEMpatch"); os.IsNotExist(err) {
+		t.Errorf("Expected file 'OEMpatch' was not created")
+	}
 }
 
 func Test_fileUpload_staging(t *testing.T) {
