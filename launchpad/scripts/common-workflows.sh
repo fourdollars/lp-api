@@ -8,6 +8,16 @@ if ! command -v lp-api &> /dev/null; then
     exit 1
 fi
 
+# Wrapper to handle config file
+_lp_api_exec() {
+    local conf="${LP_API_CONF:-./.lp-api.toml}"
+    if [ -f "$conf" ]; then
+        lp-api -conf "$conf" "$@"
+    else
+        lp-api "$@"
+    fi
+}
+
 # ============================================================================
 # BUG WORKFLOWS
 # ============================================================================
@@ -16,7 +26,7 @@ fi
 # Usage: lp_bug_info <bug-id>
 lp_bug_info() {
     local bug_id=$1
-    lp-api get "bugs/${bug_id}" | jq '{
+    _lp_api_exec get "bugs/${bug_id}" | jq '{
         id: .id,
         title: .title,
         status: .status,
@@ -36,7 +46,7 @@ lp_search_bugs() {
     shift $(( $# < 3 ? $# : 3 ))
     local tags=("$@")
     
-    local cmd="lp-api get $project ws.op==searchTasks"
+    local cmd="_lp_api_exec get $project ws.op==searchTasks"
     [ -n "$status" ] && cmd="$cmd status==$status"
     [ -n "$importance" ] && cmd="$cmd importance==$importance"
     
@@ -58,7 +68,7 @@ lp_count_bugs() {
     shift $(( $# < 3 ? $# : 3 ))
     local tags=("$@")
     
-    local cmd="lp-api get $project ws.op==searchTasks ws.show==total_size"
+    local cmd="_lp_api_exec get $project ws.op==searchTasks ws.show==total_size"
     [ -n "$status" ] && cmd="$cmd status==$status"
     [ -n "$importance" ] && cmd="$cmd importance==$importance"
     
@@ -74,7 +84,7 @@ lp_count_bugs() {
 lp_bug_comment() {
     local bug_id=$1
     local message=$2
-    lp-api post "bugs/${bug_id}" ws.op=newMessage content="$message"
+    _lp_api_exec post "bugs/${bug_id}" ws.op=newMessage content="$message"
 }
 
 # Update bug tags
@@ -88,7 +98,7 @@ lp_bug_update_tags() {
     local json_tags
     json_tags=$(printf '%s\n' "${tags[@]}" | jq -R . | jq -s .)
     
-    lp-api patch "bugs/${bug_id}" "tags:=${json_tags}"
+    _lp_api_exec patch "bugs/${bug_id}" "tags:=${json_tags}"
 }
 
 # Subscribe to bug
@@ -100,10 +110,10 @@ lp_bug_subscribe() {
     if [ -z "$person" ]; then
         # Fetch current user info and extract self_link
         # We don't use lp_get_field here to avoid circular dependency if it were more complex
-        person=$(lp-api get people/+me | jq -r .self_link)
+        person=$(_lp_api_exec get people/+me | jq -r .self_link)
     fi
     
-    lp-api post "bugs/${bug_id}" ws.op=subscribe person="$person"
+    _lp_api_exec post "bugs/${bug_id}" ws.op=subscribe person="$person"
 }
 
 # Check if a bug has a specific tag
@@ -111,7 +121,7 @@ lp_bug_subscribe() {
 lp_bug_has_tag() {
     local bug_id=$1
     local tag=$2
-    lp-api get "bugs/${bug_id}" | jq -r --arg tag "$tag" 'any(.tags[]; . == $tag)'
+    _lp_api_exec get "bugs/${bug_id}" | jq -r --arg tag "$tag" 'any(.tags[]; . == $tag)'
 }
 
 # Get status of a bug task for a specific target
@@ -119,8 +129,8 @@ lp_bug_has_tag() {
 lp_bug_task_status() {
     local bug_id=$1
     local target=$2
-    lp-api get "bugs/${bug_id}" | \
-        lp-api .bug_tasks_collection_link | \
+    _lp_api_exec get "bugs/${bug_id}" | \
+        _lp_api_exec .bug_tasks_collection_link | \
         jq -r --arg target "$target" '.entries[] | select(.bug_target_name == $target) | .status'
 }
 
@@ -128,8 +138,8 @@ lp_bug_task_status() {
 # Usage: lp_get_bug_tasks <bug-id>
 lp_get_bug_tasks() {
     local bug_id=$1
-    lp-api get "bugs/${bug_id}" | \
-        lp-api .bug_tasks_collection_link | \
+    _lp_api_exec get "bugs/${bug_id}" | \
+        _lp_api_exec .bug_tasks_collection_link | \
         jq -r '.entries[] | "\(.bug_target_name): \(.status)"'
 }
 
@@ -142,8 +152,8 @@ lp_get_bug_tasks() {
 # Example: lp_latest_build "~ubuntu-cdimage/+livefs/ubuntu/jammy/ubuntu"
 lp_latest_build() {
     local livefs=$1
-    lp-api get "$livefs" | \
-        lp-api .builds_collection_link | \
+    _lp_api_exec get "$livefs" | \
+        _lp_api_exec .builds_collection_link | \
         jq -r '.entries[0]'
 }
 
@@ -151,7 +161,7 @@ lp_latest_build() {
 # Usage: lp_build_status <build-resource-path>
 lp_build_status() {
     local build=$1
-    lp-api get "$build" | jq -r '.buildstate'
+    _lp_api_exec get "$build" | jq -r '.buildstate'
 }
 
 # Download all artifacts from a build
@@ -161,7 +171,7 @@ lp_download_build_artifacts() {
     
     echo "Getting artifact URLs for $build..."
     local urls
-    urls=$(lp-api get "$build" ws.op==getFileUrls | jq -r '.[]')
+    urls=$(_lp_api_exec get "$build" ws.op==getFileUrls | jq -r '.[]')
     
     if [ -z "$urls" ]; then
         echo "No artifacts found for build"
@@ -171,7 +181,7 @@ lp_download_build_artifacts() {
     echo "Downloading artifacts..."
     while IFS= read -r url; do
         echo "Downloading: $(basename "$url")"
-        lp-api download "$url"
+        _lp_api_exec download "$url"
     done <<< "$urls"
 }
 
@@ -214,8 +224,8 @@ lp_wait_for_build() {
 # Usage: lp_failed_builds <livefs-path>
 lp_failed_builds() {
     local livefs=$1
-    lp-api get "$livefs" | \
-        lp-api .builds_collection_link | \
+    _lp_api_exec get "$livefs" | \
+        _lp_api_exec .builds_collection_link | \
         jq -r '.entries[] | select(.buildstate == "Failed to build") | .self_link'
 }
 
@@ -229,7 +239,7 @@ lp_package_info() {
     local distro=$1
     local series=$2
     local package=$3
-    lp-api get "${distro}/${series}/+source/${package}"
+    _lp_api_exec get "${distro}/${series}/+source/${package}"
 }
 
 # Search package bugs
@@ -239,7 +249,7 @@ lp_package_bugs() {
     local package=$2
     local status=${3:-""}
     
-    local cmd="lp-api get ${distro}/+source/${package} ws.op==searchTasks"
+    local cmd="_lp_api_exec get ${distro}/+source/${package} ws.op==searchTasks"
     [ -n "$status" ] && cmd="$cmd status==$status"
     
     eval "$cmd"
@@ -252,7 +262,7 @@ lp_check_package_uploads() {
     local series=$2
     local package=$3
     
-    lp-api get "${distro}/${series}" \
+    _lp_api_exec get "${distro}/${series}" \
         ws.op==getPackageUploads \
         name=="$package" \
         ws.show==total_size
@@ -269,7 +279,7 @@ lp_get_package_set_sources() {
     local series=$2
     local pkgset=$3
     
-    lp-api get "package-sets/${distro}/${series}/${pkgset}" \
+    _lp_api_exec get "package-sets/${distro}/${series}/${pkgset}" \
         ws.op==getSourcesIncluded | \
         jq -r 'if type == "array" then .[] else .entries[] end'
 }
@@ -283,8 +293,8 @@ lp_get_package_set_sources() {
 lp_ppa_packages() {
     local owner=$1
     local ppa=$2
-    lp-api get "~${owner}/+archive/ubuntu/${ppa}" | \
-        lp-api .published_sources_collection_link | \
+    _lp_api_exec get "~${owner}/+archive/ubuntu/${ppa}" | \
+        _lp_api_exec .published_sources_collection_link | \
         jq -r '.entries[] | "\(.source_package_name) \(.source_package_version)"'
 }
 
@@ -298,7 +308,7 @@ lp_ppa_copy_package() {
     local from=$5
     local series=$6
     
-    lp-api post "~${owner}/+archive/ubuntu/${ppa}" \
+    _lp_api_exec post "~${owner}/+archive/ubuntu/${ppa}" \
         ws.op=copyPackage \
         source_name="$pkg" \
         version="$version" \
@@ -315,7 +325,7 @@ lp_ppa_copy_package() {
 # Usage: lp_person_info <username>
 lp_person_info() {
     local username=$1
-    lp-api get "~${username}" | jq '{
+    _lp_api_exec get "~${username}" | jq '{
         name: .name,
         display_name: .display_name,
         karma: .karma,
@@ -328,8 +338,8 @@ lp_person_info() {
 # Usage: lp_team_members <team-name>
 lp_team_members() {
     local team=$1
-    lp-api get "~${team}" | \
-        lp-api .members_collection_link | \
+    _lp_api_exec get "~${team}" | \
+        _lp_api_exec .members_collection_link | \
         jq -r '.entries[] | .name'
 }
 
@@ -341,7 +351,7 @@ lp_team_members() {
 # Usage: lp-api get resource | lp_follow_link <field-name>
 lp_follow_link() {
     local field=$1
-    lp-api ".${field}"
+    _lp_api_exec ".${field}"
 }
 
 # Get a single field from a resource
@@ -349,7 +359,7 @@ lp_follow_link() {
 lp_get_field() {
     local resource=$1
     local field=$2
-    lp-api get "$resource" | jq -r ".${field}"
+    _lp_api_exec get "$resource" | jq -r ".${field}"
 }
 
 # List all series for a project
@@ -365,7 +375,7 @@ lp_list_series() {
     
     # Verify project exists and get series collection link
     local series_link
-    series_link=$(lp-api get "$project" | lp-api .series_collection_link 2>/dev/null)
+    series_link=$(_lp_api_exec get "$project" | _lp_api_exec .series_collection_link 2>/dev/null)
     if [ -z "$series_link" ] || [ "$series_link" == "null" ]; then
         echo "Error: Could not find series for project '$project'"
         return 1
@@ -375,8 +385,8 @@ lp_list_series() {
         echo -e "Series\tStatus\tWeb Link"
         echo -e "------\t------\t--------"
         
-        lp-api get "$project" | \
-            lp-api .series_collection_link | \
+        _lp_api_exec get "$project" | \
+            _lp_api_exec .series_collection_link | \
             jq -r '.entries[] | "\((.displayname // .display_name) + (if .version then " (\(.version))" else "" end))\t\(.status)\t\(.web_link)"'
     ) | column -t -s $'\t'
 }
@@ -440,7 +450,7 @@ lp_paginate_all() {
     local has_more=true
     
     while [ "$has_more" = true ]; do
-        local cmd="lp-api get $resource ws.op==$operation ws.start==$start ws.size==$size"
+        local cmd="_lp_api_exec get $resource ws.op==$operation ws.start==$start ws.size==$size"
         for filter in "${filters[@]}"; do
             cmd="$cmd $filter"
         done
@@ -530,7 +540,7 @@ Usage: source this file in your scripts
 
 Description:
   This script provides a collection of shell functions to interact with the
-  Launchpad API using the 'lp-api' tool. It simplifies common tasks like
+  Launchpad API using the '_lp_api_exec' tool. It simplifies common tasks like
   bug management, build monitoring, and package queries.
 
 Available Functions:

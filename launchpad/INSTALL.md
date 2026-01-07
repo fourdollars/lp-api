@@ -72,7 +72,7 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 
 **Authentication failed**: Remove and re-create credentials
 ```bash
-rm ~/.config/lp-api.toml
+rm .lp-api.toml
 lp-api get people/+me
 ```
 

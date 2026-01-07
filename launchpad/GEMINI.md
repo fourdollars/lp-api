@@ -24,6 +24,28 @@ All lp-api commands suggested by this skill MUST be validated against assets/lau
 - **Bug Analysis**: Checking for specific tags, task statuses, and listing all tasks
 - **Utility Helpers**: Extracting single fields from any resource
 
+## Installation & Troubleshooting
+
+If `lp-api` is not found, use the GitHub API to find and download the correct binary for your system.
+
+**1. Find download URL:**
+```bash
+# Get the browser_download_url for your OS (linux/darwin/windows) and Architecture (amd64/arm64)
+# Example for Linux AMD64:
+curl -s https://api.github.com/repos/fourdollars/lp-api/releases | \
+  jq -r '.[0].assets[] | select(.name | endswith("linux-amd64.tar.gz")) | .browser_download_url'
+```
+
+**2. Download and Install:**
+```bash
+curl -L -o lp-api.tar.gz <URL>
+tar -xzf lp-api.tar.gz
+chmod +x lp-api
+mkdir -p bin
+mv lp-api bin/
+export PATH=$PWD/bin:$PATH
+```
+
 ## Core Capabilities
 
 ### 1. Resource Querying (GET)
@@ -297,11 +319,14 @@ Launchpad series represent specific versions/releases of distributions or projec
 ### Listing Series
 
 ```bash
-# Use the helper script (default project: ubuntu)
-./scripts/list_series.sh
+# Source the common workflows script
+source scripts/common-workflows.sh
+
+# List series for default project (ubuntu)
+lp_list_series
 
 # For a specific project
-./scripts/list_series.sh <project-name>
+lp_list_series <project-name>
 
 # List active series only
 lp-api get ubuntu | lp-api .series_collection_link | \
@@ -424,19 +449,20 @@ The tool handles OAuth authentication automatically:
    ```
 
 2. **Config File** (for interactive use):
-   - Stored at `~/.config/lp-api.toml`
+   - Stored at `.lp-api.toml` in the current directory (recommended)
+   - Use `-conf .lp-api.toml` to specify the location
    - Created automatically on first run via OAuth flow
    - User prompted to authorize at launchpad.net
 
 3. **Custom Config Path**:
    ```bash
-lp-api -conf /path/to/config.toml get people/+me
+lp-api -conf ./.lp-api.toml get people/+me
    ```
 
 ## Command Options
 
 ```bash
--conf string      # Config file path (default: ~/.config/lp-api.toml)
+-conf string      # Config file path (default: ~/.config/lp-api.toml; use -conf to specify local path)
 -debug           # Show debug messages including OAuth headers
 -help            # Show help message
 -key string      # OAuth consumer key (default: "System-wide: golang...")

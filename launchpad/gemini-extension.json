@@ -7,7 +7,6 @@
     "GEMINI.md",
     "assets/launchpad-wadl.xml",
     "scripts/wadl-helper.sh",
-    "scripts/list_series.sh",
     "references/archive.md",
     "references/basics.md",
     "references/bugs.md",
