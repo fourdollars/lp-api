@@ -4,7 +4,7 @@
 
 # Check if lp-api is available
 if ! command -v lp-api &> /dev/null; then
-    echo "Error: lp-api command not found. Install with: go install github.com/fourdollars/lp-api@latest"
+    echo "Error: lp-api command not found. Download it from https://github.com/fourdollars/lp-api/releases or install with: go install github.com/fourdollars/lp-api@latest"
     exit 1
 fi
 

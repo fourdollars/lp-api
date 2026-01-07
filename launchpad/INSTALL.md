@@ -2,6 +2,9 @@
 
 ## 1. Install lp-api Tool
 
+Download the prebuilt binary for your platform from the [GitHub releases](https://github.com/fourdollars/lp-api/releases) page and place it in your PATH.
+
+Alternatively, you can install using Go:
 ```bash
 go install github.com/fourdollars/lp-api@latest
 ```

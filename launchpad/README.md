@@ -28,6 +28,9 @@ The assistant will automatically invoke this skill when you mention:
 ### Prerequisites
 
 1. **Install lp-api tool**:
+   Download the prebuilt binary for your platform from the [GitHub releases](https://github.com/fourdollars/lp-api/releases) page and place it in your PATH.
+
+   Alternatively, you can install using Go:
    ```bash
    go install github.com/fourdollars/lp-api@latest
    ```
@@ -203,8 +206,8 @@ You can extend this skill by:
 ## Troubleshooting
 
 ### "lp-api: command not found"
-- Install with: `go install github.com/fourdollars/lp-api@latest`
-- Ensure `$GOPATH/bin` is in your `$PATH`
+- Download from [GitHub releases](https://github.com/fourdollars/lp-api/releases) and ensure it's in your PATH.
+- Or install with: `go install github.com/fourdollars/lp-api@latest` and ensure `$GOPATH/bin` is in your `$PATH`
 
 ### "Expired token" Error
 - Remove config: `rm ~/.config/lp-api.toml`
@@ -244,6 +247,6 @@ For issues with:
 
 ## Version
 
-Skill Version: 1.1.1
+Skill Version: 1.1.2
 Compatible with: lp-api latest
-Last Updated: 2026-01-06
+Last Updated: 2026-01-07

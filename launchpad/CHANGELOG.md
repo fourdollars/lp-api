@@ -2,6 +2,11 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.1.2] - 2026-01-07
+
+### Changed
+- **Installation**: Updated installation instructions to recommend downloading prebuilt binaries from GitHub releases as the primary method, with `go install` as an alternative.
+
 ## [1.1.1] - 2026-01-06
 
 ### Added
@@ -137,7 +142,7 @@ All notable changes to the Launchpad skill will be documented in this file.
 
 ### Metadata
 - Skill triggers: Launchpad, Ubuntu development, package builds, bug tracking on launchpad.net
-- Compatible with: lp-api latest (go install github.com/fourdollars/lp-api@latest)
+- Compatible with: lp-api latest (https://github.com/fourdollars/lp-api/releases)
 - Tested with: Launchpad API devel (https://api.launchpad.net/devel.html)
 
 ## Future Enhancements (Planned)

@@ -25,6 +25,9 @@ A command line tool made by golang to interact with Launchpad API https://api.la
 * `while read -r LINK; do lp-api download "$LINK"; done < <(lp-api get "~${BUILD//*~/}" ws.op==getFileUrls | jq -r .[])` - Download all artifacts from the latest build
 
 ## Install
+Download the prebuilt binary for your platform from the [GitHub releases](https://github.com/fourdollars/lp-api/releases) page and place it in your PATH.
+
+Alternatively, you can install using Go:
 `go install github.com/fourdollars/lp-api@latest`
 
 ## Documentation
