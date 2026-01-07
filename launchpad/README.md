@@ -75,7 +75,7 @@ export LAUNCHPAD_TOKEN="oauth_token:oauth_secret:consumer_key"
 lp-api get people/+me
 
 # Follow the prompts to authorize at launchpad.net
-# Credentials saved to ~/.config/lp-api.toml
+# Credentials saved to .lp-api.toml
 ```
 
 ## What's Included
@@ -210,7 +210,7 @@ You can extend this skill by:
 - Or install with: `go install github.com/fourdollars/lp-api@latest` and ensure `$GOPATH/bin` is in your `$PATH`
 
 ### "Expired token" Error
-- Remove config: `rm ~/.config/lp-api.toml`
+- Remove config: `rm .lp-api.toml`
 - Re-run any command to trigger OAuth flow
 
 ### "401 Unauthorized"
