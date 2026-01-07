@@ -9,7 +9,7 @@ description: Interact with Canonical's Launchpad platform (launchpad.net) using 
 
 This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the REST API at https://api.launchpad.net/devel.html.
 
-All lp-api commands suggested by this skill MUST be validated against assets/launchpad-wadl.xml. Use the bundled helper scripts/wadl-helper.sh validate <method> <resource> [params...] to check the resource, ws.op and required parameters; the skill should only provide commands that pass this validation.
+All lp-api commands suggested by this skill MUST be validated against assets/launchpad-wadl.xml.
 
 **Important Note:** All `lp-api` commands return JSON responses. To keep the chat interface clean and hide raw data from the main view, **ALWAYS** use the `-output <temp_file>` flag (or `> <temp_file>`) to write JSON responses to a temporary file instead of printing to stdout. Then use the `read_file` tool to retrieve and parse the data.
 
@@ -319,15 +319,6 @@ Launchpad series represent specific versions/releases of distributions or projec
 ### Listing Series
 
 ```bash
-# Source the common workflows script
-source scripts/common-workflows.sh
-
-# List series for default project (ubuntu)
-lp_list_series
-
-# For a specific project
-lp_list_series <project-name>
-
 # List active series only
 lp-api get ubuntu | lp-api .series_collection_link | \
   jq '.entries[] | select(.status == "Active") | .name'
@@ -500,7 +491,6 @@ This skill includes reference documentation in `references/` directory:
 - **people.md**: Guide to managing people, teams, and memberships
 - **project.md**: Guide to managing projects, milestones, and releases
 - **series.md**: Guide to working with Launchpad series
-- **common-workflows.sh**: Shell script library with reusable workflow functions
 
 ## Resources
 
@@ -515,4 +505,3 @@ This skill includes reference documentation in `references/` directory:
 - **people.md**: Guide to managing people, teams, and memberships
 - **project.md**: Guide to managing projects, milestones, and releases
 - **series.md**: Guide to working with Launchpad series
-- **common-workflows.sh**: Shell script library with reusable workflow functions
