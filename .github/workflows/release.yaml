@@ -12,35 +12,18 @@ jobs:
     permissions:
       contents: write
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          # Linux builds
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          # macOS builds
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          # Windows builds
-          - goos: windows
-            goarch: amd64
-          - goos: windows
-            goarch: arm64
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
     name: release ${{ matrix.goos }}/${{ matrix.goarch }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: wangyoucao577/go-release-action@v1
+    - uses: fourdollars/go-release-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
-        release_tag: ${{ github.ref_name }}
         md5sum: false
         sha256sum: true
-        asset_name: "lp-api-${{github.ref_name}}-${{ matrix.goos }}-${{ matrix.goarch }}"
-        ldflags: "-s -w"
+        overwrite: true
