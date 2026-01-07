@@ -6,7 +6,6 @@
   "context": [
     "GEMINI.md",
     "assets/launchpad-wadl.xml",
-    "scripts/wadl-helper.sh",
     "references/archive.md",
     "references/basics.md",
     "references/bugs.md",
@@ -15,7 +14,6 @@
     "references/package-sets.md",
     "references/people.md",
     "references/project.md",
-    "references/series.md",
-    "scripts/common-workflows.sh"
+    "references/series.md"
   ]
 }

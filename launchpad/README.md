@@ -85,18 +85,16 @@ launchpad/
 ├── SKILL.md                          # Claude Code skill definition
 ├── GEMINI.md                         # Gemini CLI extension definition
 ├── gemini-extension.json             # Gemini CLI manifest
-├── references/
-│   ├── archive.md                    # Archives and PPAs
-│   ├── basics.md                     # API concepts, pagination, miscellaneous
-│   ├── bugs.md                       # Bug tracking
-│   ├── git.md                        # Git repositories and recipes
-│   ├── livefs.md                     # LiveFS build monitoring
-│   ├── package-sets.md               # Package set management
-│   ├── people.md                     # People, teams, and memberships
-│   ├── project.md                    # Projects, milestones, and releases
-│   └── series.md                     # Distribution series
-└── scripts/
-    └── common-workflows.sh           # Reusable shell functions
+└── references/
+    ├── archive.md                    # Archives and PPAs
+    ├── basics.md                     # API concepts, pagination, miscellaneous
+    ├── bugs.md                       # Bug tracking
+    ├── git.md                        # Git repositories and recipes
+    ├── livefs.md                     # LiveFS build monitoring
+    ├── package-sets.md               # Package set management
+    ├── people.md                     # People, teams, and memberships
+    ├── project.md                    # Projects, milestones, and releases
+    └── series.md                     # Distribution series
 ```
 
 ## Usage Examples
@@ -154,27 +152,6 @@ The `references/` directory contains topic-specific documentation:
 - **project.md**: Managing projects, milestones, and releases.
 - **series.md**: Working with distribution series (e.g., focal, jammy).
 
-### Workflow Scripts
-
-The `scripts/common-workflows.sh` file provides reusable bash functions:
-
-**Bug Workflows:**
-- `lp_bug_info`, `lp_search_bugs`, `lp_count_bugs`
-- `lp_bug_comment`, `lp_bug_update_tags`, `lp_bug_subscribe`
-
-**Build Workflows:**
-- `lp_latest_build`, `lp_build_status`, `lp_download_build_artifacts`
-- `lp_wait_for_build`, `lp_failed_builds`
-
-**Package Workflows:**
-- `lp_package_info`, `lp_package_bugs`
-
-**PPA Workflows:**
-- `lp_ppa_packages`, `lp_ppa_copy_package`
-
-**Person/Team Workflows:**
-- `lp_person_info`, `lp_team_members`
-
 ## Development & Contribution
 
 ### Project Structure
@@ -199,9 +176,8 @@ lp-api get ubuntu/resolute ws.op==searchTasks ws.show==total_size
 
 You can extend this skill by:
 
-1. **Adding new workflows** to `scripts/common-workflows.sh`
-2. **Documenting additional API patterns** in reference files
-3. **Creating project-specific templates** for your organization
+1. **Documenting additional API patterns** in reference files
+2. **Creating project-specific templates** for your organization
 
 ## Troubleshooting
 

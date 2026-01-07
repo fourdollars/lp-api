@@ -81,15 +81,7 @@ lp-api post ~owner/+livefs/ubuntu/noble/ubuntu/+build/12345 ws.op=cancel
 
 ## Common Workflows
 
-### 1. Wait for Build Completion
-Poll a build until it finishes.
-
-```bash
-# Using the helper function from common-workflows.sh
-lp_wait_for_build "~ubuntu-cdimage/+livefs/ubuntu/noble/ubuntu/+build/12345"
-```
-
-### 2. Identify Failed Builds
+### 1. Identify Failed Builds
 Find builds that failed to identify issues in the build environment or configuration.
 
 ```bash

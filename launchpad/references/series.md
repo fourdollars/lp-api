@@ -42,23 +42,7 @@ lp-api get <project-name> | lp-api .series_collection_link
 lp-api get launchpad | lp-api .series_collection_link | jq -r '.entries[].name'
 ```
 
-### Using the Helper Function
 
-The `lp_list_series` function from `common-workflows.sh` provides a convenient way to list series:
-
-```bash
-# Source common workflows first
-source scripts/common-workflows.sh
-
-# List Ubuntu series (default)
-lp_list_series
-
-# List series for a specific project
-lp_list_series launchpad
-
-# List series for Debian
-lp_list_series debian
-```
 
 ## Using Series in Operations
 

@@ -56,13 +56,6 @@ lp-api get bugs/1
 # Validate skill structure
 python3 ~/.claude/skills/skill-creator/scripts/quick_validate.py launchpad
 
-# Source workflow functions
-source ~/.claude/skills/launchpad/scripts/common-workflows.sh
-
-# Try a function
-lp_bug_info 1
-```
-
 ## Troubleshooting
 
 **Command not found**: Add `$GOPATH/bin` to PATH
@@ -80,7 +73,6 @@ lp-api get people/+me
 
 - Read the full README.md for detailed usage
 - Browse references/ for API documentation
-- Check scripts/common-workflows.sh for reusable functions
 - Try example workflows with Copilot
 
 ## Quick Reference
