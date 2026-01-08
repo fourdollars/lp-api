@@ -9,7 +9,7 @@ Hosted git repositories for projects or distributions.
 
 **Path:** `~<owner>/<project>/+git/<repo-name>`
 
-Example: `~ubuntu-core-dev/ubuntu/+git/ubuntu-seeds`
+Example: `~ubuntu-archive/ubuntu-archive-tools/+git/ubuntu-archive-tools`
 
 ### Git Branches (Refs)
 Specific references within a repository.

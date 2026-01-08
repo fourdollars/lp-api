@@ -6,23 +6,32 @@ Archives in Launchpad represent repositories of packages. This includes the prim
 
 ### Primary Archive
 The main repository for a distribution.
-`ubuntu/+archive/primary`
-`debian/+archive/primary`
+- `ubuntu/+archive/primary`
+- `debian/+archive/primary`
 
 ### PPAs (Personal Package Archives)
 Repositories owned by individuals or teams.
-`~<owner>/+archive/ubuntu/<ppa-name>`
+- `~<owner>/+archive/ubuntu/<ppa-name>`
 
-Example: `~mozillateam/+archive/ubuntu/ppa`
+Example: `~ubuntu-wine/+archive/ubuntu/ppa`
 
 ## Querying Packages in Archives
+
+When querying packages using `getPublishedSources` or `getPublishedBinaries`, **ALWAYS** check the total size first using `ws.show==total_size`. This returns a **plain text integer number**.
 
 ### List Published Source Packages
 **Operation:** `getPublishedSources`
 
 ```bash
-# List published sources in a PPA for a specific series
-lp-api get ~owner/+archive/ubuntu/ppa \
+# 1. Check total count (returns plain text integer)
+lp-api get ~ubuntu-wine/+archive/ubuntu/ppa \
+  ws.op==getPublishedSources \
+  distro_series=="https://api.launchpad.net/devel/ubuntu/noble" \
+  status==Published \
+  ws.show==total_size
+
+# 2. Fetch results if count is reasonable
+lp-api get ~ubuntu-wine/+archive/ubuntu/ppa \
   ws.op==getPublishedSources \
   distro_series=="https://api.launchpad.net/devel/ubuntu/noble" \
   status==Published
@@ -32,7 +41,15 @@ lp-api get ~owner/+archive/ubuntu/ppa \
 **Operation:** `getPublishedBinaries`
 
 ```bash
-# List published binaries for a specific architecture
+# 1. Check total count (returns plain text integer)
+lp-api get ubuntu/+archive/primary \
+  ws.op==getPublishedBinaries \
+  distro_arch_series=="https://api.launchpad.net/devel/ubuntu/noble/amd64" \
+  binary_name=="linux-image-generic" \
+  exact_match==true \
+  ws.show==total_size
+
+# 2. Fetch results if count is reasonable
 lp-api get ubuntu/+archive/primary \
   ws.op==getPublishedBinaries \
   distro_arch_series=="https://api.launchpad.net/devel/ubuntu/noble/amd64" \
@@ -60,7 +77,7 @@ lp-api post ~dest-owner/+archive/ubuntu/dest-ppa \
 ### Syncing Source Packages
 Sync a source package from the primary archive.
 
-**Operation:** `syncSource`
+**Operation:** `syncSource` (Note: `copyPackage` is generally preferred)
 
 ```bash
 lp-api post ~owner/+archive/ubuntu/ppa \
@@ -73,23 +90,25 @@ lp-api post ~owner/+archive/ubuntu/ppa \
 ### Deleting Packages
 Remove a package from an archive.
 
-**Operation:** `deletePackage`
+**Operation:** `requestDeletion` (Operates on a publication resource)
 
 ```bash
-lp-api post ~owner/+archive/ubuntu/ppa \
-  ws.op=deletePackage \
-  source_name="my-package" \
-  distro_series="https://api.launchpad.net/devel/ubuntu/noble" \
-  pocket=Release
+# Get the publication link first, then delete
+lp-api post <publication-link> ws.op=requestDeletion removal_comment="Obsolete version"
 ```
 
 ## Archive Metadata
 
 ### PPA Signing Key
-Get the public GPG key for a PPA.
-`~owner/+archive/ubuntu/ppa/+signing-key`
+Get the public GPG key data for a PPA.
+
+**Operation:** `getSigningKeyData`
+```bash
+lp-api get ~ubuntu-wine/+archive/ubuntu/ppa ws.op==getSigningKeyData
+```
 
 ### PPA Packages Collection
+View the package list for a PPA.
 `~owner/+archive/ubuntu/ppa/+packages`
 
 ## Common Workflows
@@ -98,18 +117,21 @@ Get the public GPG key for a PPA.
 Verify if a specific version of a package is published in an archive.
 
 ```bash
+# Check if count is > 0 (returns plain text integer)
 lp-api get ubuntu/+archive/primary \
   ws.op==getPublishedSources \
   source_name=="linux" \
   version=="6.8.0-48.48" \
-  status==Published
+  status==Published \
+  ws.show==total_size
 ```
 
 ### 2. PPA Maintenance
-List all packages in a PPA to identify old versions for cleanup.
+List recent publications in a PPA.
 
 ```bash
-lp-api get ~my-team/+archive/ubuntu/my-ppa | \
-  lp-api .published_sources_collection_link | \
-  jq -r '.entries[] | "\(.source_package_name) \(.source_package_version)"'
+lp-api get ~ubuntu-wine/+archive/ubuntu/ppa \
+  ws.op==getPublishedSources \
+  order_by_date==true \
+  ws.size==10 | jq -r '.entries[] | "\(.source_package_name) \(.source_package_version)"'
 ```
