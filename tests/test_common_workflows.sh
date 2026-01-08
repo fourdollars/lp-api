@@ -85,9 +85,12 @@ else
     exit 1
 fi
 
-echo "Testing lp_search_bugs ubuntu (Production)..."
-# Search for bugs with status New in ubuntu project
-output=$(lp_search_bugs ubuntu New)
+# Get current ubuntu series dynamically
+CURRENT_UBUNTU_SERIES=$(lp-api get ubuntu | lp-api .current_series_link | jq -r .name)
+
+echo "Testing lp_search_bugs ubuntu/${CURRENT_UBUNTU_SERIES} (Production)..."
+# Search for bugs with status New in ubuntu/${CURRENT_UBUNTU_SERIES} project
+output=$(lp_search_bugs "ubuntu/${CURRENT_UBUNTU_SERIES}" New)
 if [ $? -eq 0 ] && echo "$output" | jq -e '.entries != null' > /dev/null; then
     echo "PASS: lp_search_bugs"
 else
@@ -96,8 +99,8 @@ else
     exit 1
 fi
 
-echo "Testing lp_count_bugs ubuntu (Production)..."
-output=$(lp_count_bugs ubuntu New)
+echo "Testing lp_count_bugs ubuntu/${CURRENT_UBUNTU_SERIES} (Production)..."
+output=$(lp_count_bugs "ubuntu/${CURRENT_UBUNTU_SERIES}" New)
 if [ $? -eq 0 ] && [[ "$output" =~ ^[0-9]+$ ]]; then
     echo "PASS: lp_count_bugs (Count: $output)"
 else
@@ -420,36 +423,6 @@ else
     echo "FAIL: lp_pretty"
     echo "$output"
     exit 1
-fi
-
-# lp_wadl
-echo "Testing lp_wadl..."
-output=$(lp_wadl)
-if [[ $? -eq 0 ]] && echo "$output" | grep -Ei -q "<(wadl:)?application"; then
-    echo "PASS: lp_wadl"
-else
-    # Check if any of the default paths exist
-    wadl_exists=false
-    search_paths=(
-        "launchpad/scripts/../assets/launchpad-wadl.xml"
-        "/usr/lib/python3/dist-packages/launchpadlib/testing/testing-wadl.xml"
-        "launchpad/assets/launchpad-wadl.xml"
-        "assets/launchpad-wadl.xml"
-        "launchpad-wadl.xml"
-    )
-    for path in "${search_paths[@]}"; do
-        if [ -f "$path" ]; then
-            wadl_exists=true
-            break
-        fi
-    done
-
-    if [ "$wadl_exists" = true ]; then
-        echo "FAIL: lp_wadl (File exists but could not be read or parsed correctly)"
-        exit 1
-    else
-        echo "SKIP: lp_wadl (WADL file not found in common locations, skipping test)"
-    fi
 fi
 
 # lp_extract_web_links

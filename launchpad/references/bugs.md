@@ -95,7 +95,7 @@ lp-api post bugs/123456 ws.op=addTask target=launchpad
 When querying bugs with `ws.op==searchTasks` you can request only the total count by using `ws.show==total_size`. This returns a **plain text integer number** (not a JSON object).
 
 **Status Filtering Rules:**
-- Use `status==<Status>` (exact values must match launchpad/assets/launchpad-wadl.xml).
+- Use `status==<Status>` (exact values must match `lp-api get /`).
 - Include one `status==` per status you want to include.
 - **Archive-only statuses** (`Published`, `Pending`, `Superseded`, `Deleted`) apply to archive/package resources and should be excluded when querying active project bugs.
 
