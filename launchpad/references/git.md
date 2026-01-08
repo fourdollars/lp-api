@@ -95,6 +95,33 @@ lp-api post ~owner/project/+git/repo/+merge/<proposal-id> \
 **Parameters:**
 - `subject`: Comment subject line
 - `content`: Full comment content (supports markdown formatting)
+- `vote`: Vote on the proposal ('Approve', 'Disapprove', 'Needs Information', etc.)
+- `review_type`: Type of review ('code', 'design', 'security', etc.)
+- `vote_tag`: Optional tag for the vote
+
+#### Approve a Merge Proposal
+To approve a merge proposal, post a comment with an approval vote:
+
+```bash
+lp-api post ~owner/project/+git/repo/+merge/<proposal-id> \
+  ws.op=createComment \
+  subject="Code Review Approval" \
+  content="Approved. The changes look good." \
+  vote=Approve \
+  review_type=code
+```
+
+#### Disapprove a Merge Proposal
+To disapprove, use vote=Disapprove:
+
+```bash
+lp-api post ~owner/project/+git/repo/+merge/<proposal-id> \
+  ws.op=createComment \
+  subject="Code Review" \
+  content="Needs changes before approval." \
+  vote=Disapprove \
+  review_type=code
+```
 
 ### Get Merge Proposal Comments
 List all comments on a merge proposal.
