@@ -2,6 +2,17 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.0] - 2026-01-08
+
+### Changed
+- **Documentation Refactoring**: Simplified `SKILL.md` to serve as a high-level index and converted `GEMINI.md` to a symbolic link pointing to `SKILL.md` for a unified entry point.
+- **Reference Consolidation**: Moved and refined all detailed API instructions, resource paths, and patterns into the `launchpad/references/` directory.
+- **Search Best Practices**: Standardized all `ws.op==searchTasks` examples to mandate a `ws.show==total_size` check before fetching collections to improve performance and manageability.
+- **Verified Examples**: Updated documentation with verified public resources, including replacing broken Git repository and PPA examples with working ones.
+
+### Added
+- **Workflow Guide**: Created `launchpad/references/workflow.md` to consolidate multi-step common tasks like bug triaging, batch updates, and build monitoring into a single reference.
+
 ## [1.1.3] - 2026-01-08
 
 ### Added
