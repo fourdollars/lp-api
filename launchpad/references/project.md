@@ -15,6 +15,17 @@ Example: `cloud-init`
 ### Project Series
 `<project-name>/<series-name>` or follow `series_collection_link`.
 
+#### Bug Tracking on Series
+Bug tasks can target specific project series to track issues relevant to a particular line of development.
+
+```bash
+# Search bugs in a project series
+lp-api get cloud-init/main ws.op==searchTasks
+
+# Target an existing bug to a series
+lp-api post bugs/123456 ws.op=addTask target=cloud-init/main
+```
+
 ### Project Releases
 `<project-name>/+releases` or follow `releases_collection_link`.
 
@@ -101,9 +112,13 @@ Projects have many useful properties and links:
 ## Common Workflows
 
 ### 1. Project Triage
-Search for all active bugs across a project.
+Search for all active bugs across a project. **Check the count first.**
 
 ```bash
+# 1. Check count of new bugs
+lp-api get <project-name> ws.op==searchTasks status==New ws.show==total_size
+
+# 2. Search bugs
 lp-api get <project-name> ws.op==searchTasks status==New
 ```
 

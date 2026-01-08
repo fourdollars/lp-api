@@ -199,10 +199,13 @@ lp-api get ~ubuntu-cdimage/+livefs/ubuntu/focal/ubuntu | lp-api .builds_collecti
 ### Series-Specific Bug Triaging
 
 ```bash
-# Get unassigned bugs in focal
+# 1. Check count of unassigned bugs in focal
+lp-api get ubuntu/focal ws.op==searchTasks has_no_assignee==true ws.show==total_size
+
+# 2. Get unassigned bugs in focal
 lp-api get ubuntu/focal ws.op==searchTasks has_no_assignee==true | jq -r '.entries[].id'
 
-# Assign bugs to team for focal maintenance
+# 3. Assign bugs to team for focal maintenance
 for BUG in $(lp-api get ubuntu/focal ws.op==searchTasks status==New | jq -r '.entries[].id'); do
   lp-api patch "bugs/$BUG" assignee_link:='https://api.launchpad.net/devel/~ubuntu-maintainers'
 done
