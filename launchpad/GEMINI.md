@@ -14,11 +14,12 @@ All lp-api commands suggested by this skill MUST be validated against assets/lau
 **Important Note:** All `lp-api` commands return JSON responses. To keep the chat interface clean and hide raw data from the main view, **ALWAYS** use the `-output <temp_file>` flag (or `> <temp_file>`) to write JSON responses to a temporary file instead of printing to stdout. Then use the `read_file` tool to retrieve and parse the data.
 
 **Key capabilities include:**
-- Adding comments to bugs and tasks
+- Adding comments to bugs, tasks, and merge proposals
 - Modifying bug descriptions, status, tags, and properties
 - Uploading and attaching files to resources
 - Creating new bugs, tasks, and other resources
 - Querying and downloading build artifacts
+- **Merge Proposal Management**: Reviewing, commenting, and managing Git merge proposals
 - **Package Set Management**: Querying package sets and their included sources
 - **Package Upload Monitoring**: Checking for package uploads in distribution series
 - **Bug Analysis**: Checking for specific tags, task statuses, and listing all tasks
@@ -161,6 +162,11 @@ lp-api post bugs/123456 ws.op=markAsDuplicate duplicate_of=/bugs/123455
 lp-api post bugs/123456 ws.op=addAttachment \
   attachment=@error.log \
   comment="Production error log"
+
+# Add comment to merge proposal
+lp-api post ~owner/project/+git/repo/+merge/123 ws.op=createComment \
+  subject="Review feedback" \
+  content="Detailed review comments and suggestions..."
 ```
 
 ### 4. Resource Replacement (PUT)
@@ -430,6 +436,29 @@ for BUG_ID in 123456 123457 123458; do
 done
 ```
 
+### Workflow 6: Merge Proposal Review
+
+```bash
+# 1. Get merge proposal details and diff
+lp-api get ~owner/project/+git/repo/+merge/123
+
+# 2. View the preview diff
+DIFF_ID=$(lp-api get ~owner/project/+git/repo/+merge/123 | jq -r '.preview_diff_link' | grep -o '[0-9]*$')
+lp-api get ~owner/project/+git/repo/+merge/123/+preview-diff/$DIFF_ID/diff_text
+
+# 3. Add review comment
+lp-api post ~owner/project/+git/repo/+merge/123 \
+  ws.op=createComment \
+  subject="Code Review" \
+  content="Overall good work. Please address the following issues:
+- Fix typo in volume-id field
+- Add input validation for credentials
+- Consider adding concurrency controls"
+
+# 4. View all comments on the merge proposal
+lp-api get ~owner/project/+git/repo/+merge/123/all_comments
+```
+
 ## Authentication
 
 The tool handles OAuth authentication automatically:
@@ -485,21 +514,7 @@ This skill includes reference documentation in `references/` directory:
 - **archive.md**: Guide to working with archives and PPAs
 - **basics.md**: General API concepts and miscellaneous resources
 - **bugs.md**: Comprehensive guide to bug tracking resources and operations
-- **git.md**: Guide to Git repositories and recipes
-- **livefs.md**: Guide to monitoring and managing LiveFS builds
-- **package-sets.md**: Guide to managing and querying package sets
-- **people.md**: Guide to managing people, teams, and memberships
-- **project.md**: Guide to managing projects, milestones, and releases
-- **series.md**: Guide to working with Launchpad series
-
-## Resources
-
-This skill includes reference documentation in `references/` directory:
-
-- **archive.md**: Guide to working with archives and PPAs
-- **basics.md**: General API concepts and miscellaneous resources
-- **bugs.md**: Comprehensive guide to bug tracking resources and operations
-- **git.md**: Guide to Git repositories and recipes
+- **git.md**: Guide to Git repositories, recipes, and merge proposals
 - **livefs.md**: Guide to monitoring and managing LiveFS builds
 - **package-sets.md**: Guide to managing and querying package sets
 - **people.md**: Guide to managing people, teams, and memberships

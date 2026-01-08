@@ -2,7 +2,7 @@
 name: launchpad
 description: Interact with Canonical's Launchpad platform (launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad resources. Triggered by mentions of Launchpad, Ubuntu development, package builds, or bug tracking on launchpad.net.
 metadata:
-  version: "1.1.2"
+  version: "1.1.3"
 ---
 
 # Launchpad
@@ -16,11 +16,12 @@ All lp-api commands suggested by this skill MUST be validated against launchpad/
 **Important Note:** All `lp-api` commands return JSON responses. Parse these outputs to extract meaningful information and present user-friendly summaries instead of raw JSON or commands.
 
 **Key capabilities include:**
-- Adding comments to bugs and tasks
+- Adding comments to bugs, tasks, and merge proposals
 - Modifying bug descriptions, status, tags, and properties
 - Uploading and attaching files to resources
 - Creating new bugs, tasks, and other resources
 - Querying and downloading build artifacts
+- **Merge Proposal Management**: Reviewing, commenting, and managing Git merge proposals
 - **Package Set Management**: Querying package sets and their included sources
 - **Package Upload Monitoring**: Checking for package uploads in distribution series
 - **Bug Analysis**: Checking for specific tags, task statuses, and listing all tasks
@@ -163,6 +164,11 @@ lp-api post bugs/123456 ws.op=markAsDuplicate duplicate_of=/bugs/123455
 lp-api post bugs/123456 ws.op=addAttachment \
   attachment=@error.log \
   comment="Production error log"
+
+# Add comment to merge proposal
+lp-api post ~owner/project/+git/repo/+merge/123 ws.op=createComment \
+  subject="Review feedback" \
+  content="Detailed review comments and suggestions..."
 ```
 
 ### 4. Resource Replacement (PUT)
@@ -430,6 +436,29 @@ for BUG_ID in 123456 123457 123458; do
     subject="Status Update" \
     content="Fix has been uploaded to noble-proposed"
 done
+```
+
+### Workflow 6: Merge Proposal Review
+
+```bash
+# 1. Get merge proposal details and diff
+lp-api get ~owner/project/+git/repo/+merge/123
+
+# 2. View the preview diff
+DIFF_ID=$(lp-api get ~owner/project/+git/repo/+merge/123 | jq -r '.preview_diff_link' | grep -o '[0-9]*$')
+lp-api get ~owner/project/+git/repo/+merge/123/+preview-diff/$DIFF_ID/diff_text
+
+# 3. Add review comment
+lp-api post ~owner/project/+git/repo/+merge/123 \
+  ws.op=createComment \
+  subject="Code Review" \
+  content="Overall good work. Please address the following issues:
+- Fix typo in volume-id field
+- Add input validation for credentials
+- Consider adding concurrency controls"
+
+# 4. View all comments on the merge proposal
+lp-api get ~owner/project/+git/repo/+merge/123/all_comments
 ```
 
 ## Authentication

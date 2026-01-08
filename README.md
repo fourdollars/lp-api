@@ -14,6 +14,7 @@ A command line tool made by golang to interact with Launchpad API https://api.la
 
 **Add comments:**
 * `lp-api post bugs/123456 ws.op=newMessage subject="Update" content="Status update"` - Add comment to bug
+* `lp-api post ~owner/project/+git/repo/+merge/123 ws.op=createComment subject="Review feedback" content="Detailed review comments..."` - Add comment to merge proposal
 
 **File uploads:**
 * `lp-api post bugs/123456 ws.op=addAttachment attachment=@error.log comment="Production error log"` - Attach log file to bug (comment is required)
