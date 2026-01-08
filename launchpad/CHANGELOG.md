@@ -2,6 +2,12 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.1] - 2026-01-08
+
+### Changed
+- **WADL Removal**: Removed `launchpad/assets/launchpad-wadl.xml` and `launchpad/scripts/wadl-helper.sh`. The skill now uses `lp-api get /` to discover API operations dynamically.
+- **Reference Updates**: Updated reference documentation to remove WADL references and direct users to `lp-api get /` or the API root.
+
 ## [1.2.0] - 2026-01-08
 
 ### Changed

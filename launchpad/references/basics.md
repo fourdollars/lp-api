@@ -105,7 +105,7 @@ Many collections support these filters:
 - **Specific:** `+builds/<builder-name>`
 
 ## Discovering Operations
-To find what operations are available for a resource, you can often check the `resource_type_link` or look for `ws.op` values in the WADL documentation.
+To find what operations are available for a resource, you can often check the `resource_type_link` or look for `ws.op` values in the API root documentation (`lp-api get /`).
 
 Common operations include:
 - `searchTasks` (Bugs)

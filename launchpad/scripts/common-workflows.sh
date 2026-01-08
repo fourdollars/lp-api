@@ -397,34 +397,6 @@ lp_pretty() {
     jq '.'
 }
 
-# Read bundled WADL to help skill decide API operations
-# Usage: lp_wadl [path-to-wadl]
-lp_wadl() {
-    local wadl_path=$1
-    if [ -n "$wadl_path" ] && [ -f "$wadl_path" ]; then
-        cat "$wadl_path"
-        return 0
-    fi
-
-    local search_paths=(
-        "$(dirname "${BASH_SOURCE[0]}")/../assets/launchpad-wadl.xml"
-        "/usr/lib/python3/dist-packages/launchpadlib/testing/testing-wadl.xml"
-        "launchpad/assets/launchpad-wadl.xml"
-        "assets/launchpad-wadl.xml"
-        "launchpad-wadl.xml"
-    )
-
-    for path in "${search_paths[@]}"; do
-        if [ -f "$path" ]; then
-            cat "$path"
-            return 0
-        fi
-    done
-
-    echo ""
-    return 1
-}
-
 # Extract web links from search results
 # Usage: lp-api get project ws.op==searchTasks | lp_extract_web_links
 lp_extract_web_links() {
