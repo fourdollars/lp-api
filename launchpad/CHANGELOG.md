@@ -2,6 +2,12 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.1.3] - 2026-01-08
+
+### Added
+- **Merge Proposal Management**: Added documentation and workflows for reviewing, commenting on, and managing Git merge proposals.
+- **Workflow**: Added "Workflow 6: Merge Proposal Review" to SKILL.md and GEMINI.md.
+
 ## [1.1.2] - 2026-01-07
 
 ### Changed

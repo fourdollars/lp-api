@@ -8,6 +8,7 @@ This skill enables AI assistants (GitHub Copilot CLI / Claude Code, Gemini CLI) 
 
 - **Bug Management**: Query, search, update, and track bugs across Ubuntu and other projects
 - **Build Monitoring**: Check build status, download artifacts, monitor CI/CD pipelines
+- **Merge Proposal Management**: Review, comment, and manage Git merge proposals
 - **Package Management**: Query package information, manage PPAs, sync packages
 - **Team/Person Operations**: Lookup users, teams, memberships
 - **Comprehensive API Coverage**: Access any Launchpad REST API resource
@@ -87,10 +88,10 @@ launchpad/
 ├── gemini-extension.json             # Gemini CLI manifest
 └── references/
     ├── archive.md                    # Archives and PPAs
-    ├── basics.md                     # API concepts, pagination, miscellaneous
-    ├── bugs.md                       # Bug tracking
-    ├── git.md                        # Git repositories and recipes
-    ├── livefs.md                     # LiveFS build monitoring
+│   ├── basics.md                     # General API concepts
+│   ├── bugs.md                       # Bug tracking resources
+│   ├── git.md                        # Git repositories, recipes, and merge proposals
+│   ├── livefs.md                     # LiveFS build management
     ├── package-sets.md               # Package set management
     ├── people.md                     # People, teams, and memberships
     ├── project.md                    # Projects, milestones, and releases
