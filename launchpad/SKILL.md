@@ -2,7 +2,7 @@
 name: launchpad
 description: Interact with Canonical's Launchpad platform (launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad resources. Triggered by mentions of Launchpad, Ubuntu development, package builds, or bug tracking on launchpad.net.
 metadata:
-  version: "1.2.1"
+  version: "1.2.2"
 ---
 
 # Launchpad
@@ -64,3 +64,30 @@ Refer to the documentation in `references/` for detailed usage, patterns, and wo
 - **people.md**: Guide to managing people, teams, and memberships.
 - **project.md**: Guide to managing projects, milestones, and releases.
 - **series.md**: Guide to working with Launchpad series (distro releases).
+
+## Quick Tips
+
+### Search Bugs Across ALL Projects
+
+To find bugs you're involved with across all projects and distributions, use `searchTasks` on the person resource:
+
+```bash
+# Get your person link
+ME_LINK=$(lp-api get people/+me | jq -r '.self_link')
+
+# All bugs assigned to you (across all projects)
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK
+
+# Filter by status
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress"
+
+# Bugs you reported, subscribed to, or have activity on
+lp-api get people/+me ws.op==searchTasks bug_reporter==$ME_LINK
+lp-api get people/+me ws.op==searchTasks bug_subscriber==$ME_LINK
+lp-api get people/+me ws.op==searchTasks bug_commenter==$ME_LINK  # includes any activity
+lp-api get people/+me ws.op==searchTasks affected_user==$ME_LINK
+```
+
+**Note:** `bug_commenter` includes any bug activity (comments, status changes, field updates), not just message comments.
+
+This is equivalent to the web UI at `https://launchpad.net/~username/+assignedbugs`.

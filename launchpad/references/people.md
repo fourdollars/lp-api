@@ -101,12 +101,62 @@ lp-api get ~username | lp-api .memberships_collection_link
 lp-api get ~username/+archive/ubuntu/ppa
 ```
 
-### User's Assigned Bugs
-`~username` (via bug search)
+### User's Bug Involvement
 
+You can search for bugs at the **person level** to find all bugs a user is involved with **across all projects and distributions**.
+
+**Search bugs assigned to a specific user:**
 ```bash
-lp-api get ubuntu ws.op==searchTasks assignee==~username
+# In a specific project/distribution (requires full link)
+USER_LINK=$(lp-api get ~username | jq -r '.self_link')
+lp-api get ubuntu ws.op==searchTasks assignee==$USER_LINK
+
+# Across ALL projects (person-level search)
+USER_LINK=$(lp-api get ~username | jq -r '.self_link')
+lp-api get ~username ws.op==searchTasks assignee==$USER_LINK
 ```
+
+**Search YOUR bugs across all projects:**
+```bash
+# Get your person link
+ME_LINK=$(lp-api get people/+me | jq -r '.self_link')
+
+# Count all bugs assigned to you
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK ws.show==total_size
+
+# Get "In Progress" bugs assigned to you
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress"
+
+# Bugs you reported
+lp-api get people/+me ws.op==searchTasks bug_reporter==$ME_LINK
+
+# Bugs you're subscribed to
+lp-api get people/+me ws.op==searchTasks bug_subscriber==$ME_LINK
+
+# Bugs you have activity on (comments, status changes, field updates, etc.)
+lp-api get people/+me ws.op==searchTasks bug_commenter==$ME_LINK
+
+# Bugs where you're marked as affected
+lp-api get people/+me ws.op==searchTasks affected_user==$ME_LINK
+```
+
+**Format the output nicely:**
+```bash
+# Simple list (title already includes bug number and context)
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress" | \
+  jq -r '.entries[].title'
+
+# Or extract just bug number and description
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress" | \
+  jq -r '.entries[] | (.bug_link | split("/")[-1]) + ": " + (.title | split(": ")[1:] | join(": "))'
+```
+
+**Key Points:**
+- The `assignee`, `bug_reporter`, `bug_subscriber`, `bug_commenter`, and `affected_user` parameters require the full API link (e.g., `https://api.launchpad.net/devel/~username`).
+- Use `jq -r '.self_link'` to extract the link from a person resource.
+- `bug_commenter` includes any bug activity (comments, status changes, field updates), not just message comments.
+- Person-level `searchTasks` searches across **all contexts** (all projects and distributions).
+- This is equivalent to the web UI at `https://launchpad.net/~username/+assignedbugs`.
 
 ### User's SSH Keys
 SSH keys are not typically exposed via the standard API for security/privacy, but some public details might be available depending on permissions.
