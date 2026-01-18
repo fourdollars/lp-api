@@ -1,5 +1,8 @@
 # lp-api
-A command line tool made by golang to interact with Launchpad API https://api.launchpad.net/devel.html
+
+A command-line tool written in Go for interacting with the Launchpad API at https://api.launchpad.net/devel.html
+
+This project includes an [Agent Skill](https://agentskills.io/) that enables AI coding agents to work with Canonical's Launchpad platform for Ubuntu/Debian development, bug tracking, and build management.
 
 ## Quick Examples
 
@@ -26,10 +29,29 @@ A command line tool made by golang to interact with Launchpad API https://api.la
 * `while read -r LINK; do lp-api download "$LINK"; done < <(lp-api get "~${BUILD//*~/}" ws.op==getFileUrls | jq -r .[])` - Download all artifacts from the latest build
 
 ## Install
+
 Download the prebuilt binary for your platform from the [GitHub releases](https://github.com/fourdollars/lp-api/releases) page and place it in your PATH.
 
 Alternatively, you can install using Go:
-`go install github.com/fourdollars/lp-api@latest`
+```bash
+go install github.com/fourdollars/lp-api@latest
+```
 
 ## Documentation
-See `launchpad/SKILL.md` for comprehensive usage guide and examples.
+
+### For End Users
+- See the [Quick Examples](#quick-examples) above for common use cases
+- Run `lp-api -help` for command-line options
+
+### For AI Coding Agents
+This repository includes a comprehensive [Agent Skill](https://agentskills.io/) at `launchpad/SKILL.md` that provides:
+- Detailed API usage patterns and workflows
+- Authentication setup and troubleshooting
+- Helper functions for common Launchpad operations
+- Best practices for bug tracking, package management, and build automation
+
+The skill enables AI agents to work effectively with Canonical's Launchpad platform for Ubuntu/Debian development tasks.
+
+**Using the skill:**
+- Compatible with [OpenCode](https://opencode.ai/), [Claude Desktop](https://claude.ai/download), [Cline](https://github.com/cline/cline), and other skills-compatible AI agents
+- See the full documentation in [launchpad/SKILL.md](launchpad/SKILL.md)
