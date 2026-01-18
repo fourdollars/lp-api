@@ -60,6 +60,46 @@ lp-api get <target> ws.op==searchTasks [filters...] [ws.size==N]
 - **Source Package**: `lp-api get ubuntu/+source/linux ws.op==searchTasks ws.show==total_size`
 - **Project**: `lp-api get cloud-init ws.op==searchTasks ws.show==total_size`
 
+### Searching Across ALL Projects (Person-level Search)
+
+You can search for bugs **across all projects and distributions** by using `searchTasks` on a person resource. This is useful for finding all bugs you're involved with regardless of which project they belong to.
+
+**Person resource**: `people/+me` or `~username`
+
+```bash
+# Get your person link
+ME_LINK=$(lp-api get people/+me | jq -r '.self_link')
+
+# Count ALL bugs assigned to you across all projects
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK ws.show==total_size
+
+# Get all "In Progress" bugs assigned to you
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress"
+
+# Bugs you reported (across all projects)
+lp-api get people/+me ws.op==searchTasks bug_reporter==$ME_LINK
+
+# Bugs you're subscribed to
+lp-api get people/+me ws.op==searchTasks bug_subscriber==$ME_LINK
+
+# Bugs you have activity on (comments, status changes, etc.)
+lp-api get people/+me ws.op==searchTasks bug_commenter==$ME_LINK
+
+# Bugs you're marked as affected by
+lp-api get people/+me ws.op==searchTasks affected_user==$ME_LINK
+
+# Formatted output - simple list of titles (already includes bug numbers)
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress" | \
+  jq -r '.entries[].title'
+
+# Or extract just bug number and description
+lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress" | \
+  jq -r '.entries[] | (.bug_link | split("/")[-1]) + ": " + (.title | split(": ")[1:] | join(": "))'
+```
+
+**Note:** 
+- The `assignee`, `bug_reporter`, `bug_subscriber`, `bug_commenter`, and `affected_user` parameters require the full API link (e.g., `https://api.launchpad.net/devel/~username`), not just the username. Use `jq -r '.self_link'` to extract it from the person resource.
+- `bug_commenter` includes any bug activity (comments, status changes, field updates), not just message comments.
 
 ## Targeting Bug Tasks
 

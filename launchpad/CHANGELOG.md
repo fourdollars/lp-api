@@ -2,6 +2,23 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.2] - 2026-01-18
+
+### Added
+- **Person-Level Bug Search**: Added comprehensive documentation and examples for searching bugs across all projects using the person resource
+  - New section in `bugs.md`: "Searching Across ALL Projects (Person-level Search)"
+  - Enhanced `people.md`: "User's Bug Involvement" with detailed filter examples
+  - New "Quick Tips" section in `SKILL.md` with person-level search examples
+  - Support for all involvement filters: `bug_reporter`, `bug_subscriber`, `bug_commenter`, `affected_user`
+  - Verified all commands with actual API testing
+  - Added clarification that `bug_commenter` includes any bug activity (not just message comments)
+
+### Changed
+- **Documentation Accuracy**: Fixed and verified all person-level search commands
+  - Updated `assignee` parameter usage to require full API links
+  - Improved output formatting examples (removed duplicate "Bug #" prefix)
+  - Added detailed notes about parameter requirements
+
 ## [1.2.1] - 2026-01-08
 
 ### Changed
