@@ -135,3 +135,56 @@ lp-api get ~ubuntu-wine/+archive/ubuntu/ppa \
   order_by_date==true \
   ws.size==10 | jq -r '.entries[] | "\(.source_package_name) \(.source_package_version)"'
 ```
+
+### 3. Monitoring Uploads by Package Set
+Filtering uploads to an archive (e.g., Primary) by a Package Set often requires client-side filtering because `getPackageUploads` does not support package set filters directly.
+
+However, if the package set is defined by a naming convention (e.g., "Packages matching glob oem-*-meta"), you can use prefix matching:
+
+```bash
+# Efficient: Prefix match for packages starting with "oem-"
+# 1. Get total count
+COUNT=$(lp-api get ubuntu/noble \
+  ws.op==getPackageUploads \
+  name=="oem-" \
+  ws.show==total_size)
+
+# 2. Fetch all results using count as size
+# Added .contains_copy/build checks to identify upload type (Sync/Build)
+lp-api get ubuntu/noble \
+  ws.op==getPackageUploads \
+  name=="oem-" \
+  ws.size==$COUNT | \
+  jq -r '.entries[] | select(.package_name | test("oem-.*-meta")) | "\(.package_name)\t\(.package_version)\t\(.component_name // "main")\t\(.pocket)\t\(if .contains_copy then "Sync" elif .contains_build then "Build" elif .contains_source then "Source" else "Mixed" end)\t\(.date_created)"' | \
+  sort -r -k6 | \
+  column -t -s $'\t'
+```
+
+If the package set contains disparate names, you must iterate client-side:
+
+```bash
+# 1. Get list of packages in the set
+lp-api get package-sets/ubuntu/noble/canonical-oem-metapackages \
+  ws.op==getSourcesIncluded > sources.json
+
+# 2. Iterate through packages to check for uploads
+# Use 'exact_match==true' to ensure precise matching
+echo "Checking recent uploads..."
+cat sources.json | jq -r '.[]' | while read PKG; do
+  COUNT=$(lp-api get ubuntu/noble ws.op==getPackageUploads \
+    name=="$PKG" \
+    exact_match==true \
+    created_since_date=="2026-01-01" \
+    ws.show==total_size)
+
+  if [ "$COUNT" -gt 0 ]; then
+    lp-api get ubuntu/noble \
+      ws.op==getPackageUploads \
+      name=="$PKG" \
+      exact_match==true \
+      created_since_date=="2026-01-01" \
+      ws.size==$COUNT | \
+      jq -r '.entries[] | "\(.package_name)\t\(.package_version)\t\(.component_name // "main")\t\(.pocket)\t\(if .contains_copy then "Sync" elif .contains_build then "Build" elif .contains_source then "Source" else "Mixed" end)\t\(.date_created)"'
+  fi
+done | sort -r -k6 | column -t -s $'\t'
+```

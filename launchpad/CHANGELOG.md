@@ -2,6 +2,16 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.4] - 2026-01-19
+
+### Added
+- **Archive Upload Monitoring**: Added comprehensive guide for monitoring package uploads in `archive.md`.
+  - Added "Monitoring Uploads by Package Set" workflow.
+  - Documented efficient prefix-matching (`name=="oem-"`) for package sets with consistent naming conventions.
+  - Provided fallback iterative method for disparate package sets.
+  - Added advanced `jq` recipes for aligned, sorted tables showing Package, Version, Component, Pocket, Type (Sync/Build), and Date.
+  - Documented correct pagination handling using `ws.show==total_size` combined with dynamic `ws.size`.
+
 ## [1.2.3] - 2026-01-19
 
 ### Added
