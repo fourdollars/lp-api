@@ -2,6 +2,14 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.3] - 2026-01-19
+
+### Added
+- **Activity Tracking**: Added a new "Activity & History" section to `bugs.md`.
+  - Detailed guide on how to track user-specific activity (status changes, comments, etc.) on bugs.
+  - Explained the difference between `searchTasks` filters (involvement) and strict activity history.
+  - Provided `jq` recipes for filtering activity logs client-side to find specific user actions.
+
 ## [1.2.2] - 2026-01-18
 
 ### Added

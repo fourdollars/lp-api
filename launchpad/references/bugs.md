@@ -382,3 +382,51 @@ lp-api patch "bugs/$BUG_ID" importance:='"High"'
 # 4. Subscribe
 lp-api post "bugs/$BUG_ID" ws.op=subscribe
 ```
+
+## Activity & History
+
+Tracking your exact activity on Launchpad requires client-side filtering because the API's `searchTasks` filters (like `bug_commenter`) return bugs you are *involved* in, not just bugs you explicitly modified.
+
+### Checking Recent Activity
+
+To find actions you performed (status changes, comments, attachment uploads), you must:
+1. Search for bugs you are involved in.
+2. Iterate through them and fetch their `activity` and `messages` history.
+3. Filter the entries using `jq` to match your user link and date range.
+
+**Example: Check your activity since Jan 1, 2026**
+
+```bash
+# 1. Setup variables
+ME_LINK=$(lp-api get people/+me | jq -r '.self_link')
+SINCE="2026-01-01"
+
+# 2. Get bugs you are involved with (commenter includes all activity types)
+# Note: bug_commenter requires the full API URL, not just ~username
+# Use ws.size to fetch more results if needed
+BUGS=$(lp-api get people/+me ws.op==searchTasks \
+  bug_commenter=="$ME_LINK" \
+  modified_since==$SINCE \
+  ws.size==50 | jq -r '.entries[].bug_link' | sort -u)
+
+# 3. Iterate and filter strictly for YOUR actions
+for BUG_URL in $BUGS; do
+  BUG_ID=$(basename "$BUG_URL")
+  echo "Checking Bug $BUG_ID..."
+
+  # Check activity (status changes, importance, assignments)
+  lp-api get "bugs/$BUG_ID/activity" | \
+    jq --arg ME "$ME_LINK" --arg DATE "$SINCE" \
+    '.entries[] | select(.person_link == $ME and .datechanged >= $DATE)'
+
+  # Check messages (comments)
+  lp-api get "bugs/$BUG_ID/messages" | \
+    jq --arg ME "$ME_LINK" --arg DATE "$SINCE" \
+    '.entries[] | select(.owner_link == $ME and .date_created >= $DATE)'
+done
+```
+
+**Key Differences:**
+- `searchTasks` with `bug_commenter` finds bugs where you did *something* historically.
+- The `jq` filter `select(.person_link == $ME)` ensures you only see the specific actions *you* performed recently, ignoring updates by others on the same bugs.
+
