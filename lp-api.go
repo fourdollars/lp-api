@@ -579,10 +579,18 @@ func (lp *LaunchpadAPI) Pipe(node string) (string, error) {
 	return lp.DoProcess(req)
 }
 
+func getHostName() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "golang"
+	}
+	return hostname
+}
+
 var conf = flag.String("conf", os.Getenv("HOME")+"/.config/lp-api.toml", "Specify the Launchpad API config file.")
 var debug = flag.Bool("debug", false, "Show debug messages")
 var help = flag.Bool("help", false, "Show help")
-var key = flag.String("key", "System-wide: golang (https://github.com/fourdollars/lp-api)", "Specify the OAuth Consumer Key.")
+var key = flag.String("key", fmt.Sprintf("System-wide: %s (https://github.com/fourdollars/lp-api)", getHostName()), "Specify the OAuth Consumer Key.")
 var lpAPI = "https://api.launchpad.net/devel/"
 var output = flag.String("output", "", "Specify the output file.")
 var staging = flag.Bool("staging", false, "Use Launchpad staging server.")

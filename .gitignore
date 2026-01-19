@@ -19,3 +19,6 @@
 
 # Go workspace file
 go.work
+lp-api
+lp-api.toml
+.lp-api.toml
