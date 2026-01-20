@@ -2,6 +2,22 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.5] - 2026-01-20
+
+### Added
+- **Bug Description Updates**: Added documentation for updating bug descriptions with proper JSON encoding using `jq -sR`
+  - Method for multiline descriptions from file: `jq -sR < file.txt`
+  - Method for inline short descriptions: `echo 'text' | jq -sR`
+  - Clarified `:=` operator expects JSON input while `=` expects plain text
+- **Comment Content Removal**: Added comprehensive guide for deleting comment content
+  - Detailed `deleteContent` operation usage with examples
+  - Comment indexing clarification (entries[0] is description, entries[1] is comment #2, etc.)
+  - Batch deletion examples with `jq` and `xargs`
+- **Attachment Removal**: Added complete documentation for removing attachments from bugs
+  - `removeFromBug` operation examples
+  - Filtering attachments by title, ID, or position
+  - Multiple workflow examples (remove by pattern, remove most recent, etc.)
+
 ## [1.2.4] - 2026-01-19
 
 ### Added

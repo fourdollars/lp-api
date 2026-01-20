@@ -192,9 +192,21 @@ These changes affect the bug across all contexts.
 # Update tags (overwrite list)
 lp-api patch bugs/123456 tags:='["regression", "ui"]'
 
-# Update title or description
+# Update title
 lp-api patch bugs/123456 title:='"New Title"'
+
+# Update description (multiline text)
+# Method 1: From file (recommended for long descriptions)
+lp-api patch bugs/123456 "description:=$(jq -sR < description.txt)"
+
+# Method 2: Inline short description
+lp-api patch bugs/123456 "description:=$(echo 'Short description' | jq -sR)"
 ```
+
+**Note on Description Updates:**
+- Use `jq -sR` (slurp raw input) to properly JSON-encode multiline text for the `:=` operator
+- The `:=` operator expects JSON input, while `=` expects plain text
+- For multiline descriptions, always use file input with `jq -sR < file.txt`
 
 ### Updating Bug Status (Per Task)
 Status, importance, and assignments are properties of a **Bug Task** (the bug's context within a specific project or package).
@@ -230,6 +242,32 @@ lp-api post bugs/123456 ws.op=newMessage \
   content="I have reproduced this issue on version 2.0." \
   subject="Reproduction Steps"
 ```
+
+### Removing Comment Content
+**Operation:** `deleteContent` (on message resource)
+**Resource:** Message self_link from bug's messages collection
+
+You cannot delete a comment entirely, but you can delete its content, leaving a placeholder.
+
+```bash
+# 1. Get the bug's messages
+lp-api get bugs/123456/messages | jq -r '.entries[].self_link'
+
+# 2. Delete content of a specific message
+MESSAGE_LINK="https://api.launchpad.net/devel/bugs/123456/messages/5"
+lp-api post "$MESSAGE_LINK" ws.op=deleteContent
+
+# Example: Delete comment #2 content
+lp-api get bugs/123456/messages | \
+  jq -r '.entries[1].self_link' | \
+  xargs -I {} lp-api post {} ws.op=deleteContent
+```
+
+**Important Notes:**
+- Comments are indexed starting from 0, but displayed as #1, #2, etc. in the UI
+- Entry 0 is usually the bug description, entry 1 is comment #2, etc.
+- Use `.entries[1]` for comment #2, `.entries[2]` for comment #3, etc.
+- After deletion, the comment shows as "(removed)" in the UI but the message object remains
 
 ## Bug Subscriptions
 
@@ -323,6 +361,36 @@ Files are typically accessed via their URL.
 ```bash
 lp-api download <file-url>
 ```
+
+### Removing Attachments
+**Operation:** `removeFromBug` (on bug_attachment resource)
+**Resource:** Attachment self_link from bug's attachments collection
+
+```bash
+# 1. List all attachments on a bug
+lp-api get bugs/123456/attachments | \
+  jq -r '.entries[] | "\(.id): \(.title) (\(.self_link))"'
+
+# 2. Remove a specific attachment
+ATTACHMENT_LINK="https://api.launchpad.net/devel/bugs/123456/+attachment/5940015"
+lp-api post "$ATTACHMENT_LINK" ws.op=removeFromBug
+
+# Example: Remove attachment by title pattern
+lp-api get bugs/123456/attachments | \
+  jq -r '.entries[] | select(.title | contains("old-version")) | .self_link' | \
+  xargs -I {} lp-api post {} ws.op=removeFromBug
+
+# Example: Remove most recent attachment
+lp-api get bugs/123456/attachments | \
+  jq -r '.entries[-1].self_link' | \
+  xargs -I {} lp-api post {} ws.op=removeFromBug
+```
+
+**Important Notes:**
+- Attachments are permanently removed from the bug (not just hidden)
+- The operation is `removeFromBug`, not `delete`
+- You need the attachment's self_link, which includes the attachment ID
+- Use `jq` filters to find the right attachment before removing it
 
 ## Common Workflows
 
