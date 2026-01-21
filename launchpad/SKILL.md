@@ -1,17 +1,17 @@
 ---
 name: launchpad
-description: Interact with Canonical's Launchpad platform via the Launchpad REST API (api.launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad API resources. Triggered by mentions of Launchpad API, Ubuntu development, package builds, or bug tracking.
+description: Interact with Canonical's Launchpad platform via the Launchpad API (api.launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad API resources. Triggered by mentions of Launchpad API, Ubuntu development, package builds, or bug tracking.
 metadata:
-  version: "1.2.6"
+  version: "1.2.7"
 ---
 
 # Launchpad API
 
 ## Overview
 
-This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through direct REST API calls using the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the official REST API at https://api.launchpad.net/devel.html.
+This skill enables interaction with Canonical's Launchpad platform (https://launchpad.net) through direct API calls using the `lp-api` command-line tool. It provides full CRUD capabilities (Create, Read, Update, Delete) for querying and managing bugs, people, projects, builds, and other Launchpad resources via the official API at https://api.launchpad.net/devel.html.
 
-**API-First Approach:** This skill focuses on direct REST API interaction using `lp-api`, not the web UI or Python launchpadlib. All operations are performed via HTTP requests to api.launchpad.net.
+**API-First Approach:** This skill focuses on direct API interaction using `lp-api`, not the web UI or Python launchpadlib. All operations are performed via HTTP requests to api.launchpad.net.
 
 **Important Note:** All `lp-api` commands return JSON responses except using with ws.show==total_size, or using download and pipe subcommands. Parse these outputs to extract meaningful information.
 

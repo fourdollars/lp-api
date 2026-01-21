@@ -61,7 +61,7 @@ lp-api get <resource> | lp-api .<link-field>
 Example: `lp-api get ubuntu | lp-api .series_collection_link`
 
 ## URL Structure
-The Launchpad API is RESTful.
+The Launchpad API follows standard HTTP conventions.
 - **Base URL:** `https://api.launchpad.net/devel/`
 - **Resources:** Accessed by hierarchy (e.g., `ubuntu/noble`, `bugs/1`).
 

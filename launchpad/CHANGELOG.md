@@ -2,6 +2,15 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.7] - 2026-01-21
+
+### Improved
+- **Terminology**: Removed "REST" terminology to avoid confusing AI agents
+  - Changed "Launchpad REST API" to "Launchpad API" throughout documentation
+  - Simplified "RESTful" description to "follows standard HTTP conventions" in `basics.md`
+  - Updated skill descriptions in `SKILL.md`, `gemini-extension.json`, and `README.md`
+  - Prevents AI agents from incorrectly applying strict REST principles to Launchpad's operation-based API (e.g., `ws.op` parameters)
+
 ## [1.2.6] - 2026-01-21
 
 ### Added
