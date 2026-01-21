@@ -1,22 +1,25 @@
-# Launchpad Skill for GitHub Copilot CLI & Gemini CLI
+# Launchpad API Skill for GitHub Copilot CLI & Gemini CLI
 
-A comprehensive skill for interacting with Canonical's Launchpad platform using the `lp-api` command-line tool.
+A comprehensive skill for interacting with Canonical's Launchpad platform via the **Launchpad REST API** using the `lp-api` command-line tool.
 
 ## What This Skill Does
 
-This skill enables AI assistants (GitHub Copilot CLI / Claude Code, Gemini CLI) to help you work with Launchpad (launchpad.net), providing:
+This skill enables AI assistants (GitHub Copilot CLI / Claude Code, Gemini CLI) to help you work with the Launchpad REST API (api.launchpad.net), providing:
 
 - **Bug Management**: Query, search, update, and track bugs across Ubuntu and other projects
 - **Build Monitoring**: Check build status, download artifacts, monitor CI/CD pipelines
 - **Merge Proposal Management**: Review, comment, and manage Git merge proposals
 - **Package Management**: Query package information, manage PPAs, sync packages
 - **Team/Person Operations**: Lookup users, teams, memberships
-- **Comprehensive API Coverage**: Access any Launchpad REST API resource
+- **Comprehensive API Coverage**: Direct access to any Launchpad REST API endpoint
+
+**API-First Approach:** This skill focuses on direct REST API interaction using `lp-api`, not the Launchpad web UI or Python launchpadlib library. All operations are performed via HTTP requests to api.launchpad.net.
 
 ## When to Use This Skill
 
 The assistant will automatically invoke this skill when you mention:
 
+- Launchpad REST API or Launchpad API operations
 - Launchpad bugs, builds, or resources
 - Ubuntu/Debian package development
 - PPA management or package publishing
@@ -224,6 +227,6 @@ For issues with:
 
 ## Version
 
-Skill Version: 1.2.5
+Skill Version: 1.2.6
 Compatible with: lp-api latest
-Last Updated: 2026-01-19
+Last Updated: 2026-01-21

@@ -2,6 +2,25 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.6] - 2026-01-21
+
+### Added
+- **Bug Tasks**: Added documentation for removing bug tasks in `bugs.md`
+  - New "Remove a Bug Task" section with HTTP DELETE operation
+  - Examples for deleting single tasks and batch deletion workflows
+  - Important notes about permanent deletion and use cases
+
+### Improved
+- **Bug Tasks**: Enhanced `addTask` operation documentation in `bugs.md`
+  - Clarified that `target` parameter requires full API URI, not short path
+  - Added examples with complete API URIs for distributions, series, and projects
+  - Provided workflow example showing how to get target URI from a resource using `jq`
+- **Skill Identity**: Emphasized REST API focus throughout skill documentation
+  - Updated skill name from "Launchpad" to "Launchpad API" in SKILL.md
+  - Updated descriptions to highlight "Launchpad REST API (api.launchpad.net)"
+  - Added "API-First Approach" notes clarifying focus on REST API, not web UI or launchpadlib
+  - Enhanced trigger keywords to include "Launchpad API" and "Launchpad REST API"
+
 ## [1.2.5] - 2026-01-20
 
 ### Added

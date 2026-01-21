@@ -259,6 +259,94 @@ lp-api/
 5. Run static analysis: `go vet ./...`
 6. Update documentation if needed
 
+### Bumping Skill Version
+
+When updating the Launchpad skill documentation (anything in `launchpad/` directory), follow this SOP:
+
+**1. Review Changes**
+
+```bash
+# Check what has been modified
+git --no-pager status
+git --no-pager diff launchpad/
+```
+
+**2. Update Version Number**
+
+Update version in **FOUR files** (use semantic versioning):
+1. `launchpad/SKILL.md` - Line 5: `version: "X.Y.Z"`
+2. `launchpad/gemini-extension.json` - Line 4: `"version": "X.Y.Z",`
+3. `launchpad/README.md` - Near bottom: `Skill Version: X.Y.Z` and `Last Updated: YYYY-MM-DD`
+4. `launchpad/CHANGELOG.md` - Add new entry at top
+
+Version scheme:
+- **Major (X)**: Breaking changes or major redesign
+- **Minor (Y)**: New features, significant improvements
+- **Patch (Z)**: Bug fixes, documentation clarifications, minor improvements
+
+**3. Write Changelog Entry**
+
+Add entry to `launchpad/CHANGELOG.md` using this format:
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- New features or documentation sections
+
+### Improved
+- Enhancements to existing functionality or docs
+
+### Fixed
+- Bug fixes or corrections
+
+### Changed
+- Breaking changes or significant modifications
+
+### Removed
+- Deprecated features or sections
+```
+
+**Guidelines for changelog entries:**
+- Use past tense ("Added", "Improved", not "Add", "Improve")
+- Be specific about what changed and where (mention file names)
+- Include context if the change addresses a common pain point
+- Group related changes under appropriate category
+- Lead with user impact, not implementation details
+
+**4. Verify All Files Updated**
+
+```bash
+# Ensure all 4 files show the new version
+grep -n "1\.2\.6" launchpad/SKILL.md launchpad/gemini-extension.json launchpad/README.md launchpad/CHANGELOG.md
+```
+
+**5. Commit Changes**
+
+```bash
+# Stage version files and documentation changes together
+git add launchpad/
+
+# Use descriptive commit message
+git commit -m "skill: bump version to X.Y.Z - brief description"
+```
+
+**Example Workflow:**
+
+```bash
+# After updating launchpad/references/bugs.md
+git diff launchpad/
+
+# Update all 4 version files (SKILL.md, gemini-extension.json, README.md, CHANGELOG.md)
+
+# Verify
+grep "1\.2\.6" launchpad/SKILL.md launchpad/gemini-extension.json launchpad/README.md launchpad/CHANGELOG.md
+
+# Commit
+git add launchpad/
+git commit -m "skill: bump version to 1.2.6 - improve addTask documentation"
+```
+
 ### Debugging
 
 ```bash

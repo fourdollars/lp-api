@@ -109,13 +109,51 @@ lp-api get people/+me ws.op==searchTasks assignee==$ME_LINK status=="In Progress
 
 Use this to make an existing bug affect another project, distribution, or series.
 
+**Important:** The `target` parameter requires a **full API URI**, not a short path.
+
 ```bash
-# Make bug affect a specific distro series
-lp-api post bugs/123456 ws.op=addTask target=ubuntu/noble
+# Make bug affect a distribution source package
+lp-api post bugs/123456 ws.op=addTask \
+  target=https://api.launchpad.net/devel/ubuntu/+source/linux
+
+# Make bug affect a specific distro series package
+lp-api post bugs/123456 ws.op=addTask \
+  target=https://api.launchpad.net/devel/ubuntu/noble/+source/linux
 
 # Make bug affect another project
-lp-api post bugs/123456 ws.op=addTask target=launchpad
+lp-api post bugs/123456 ws.op=addTask \
+  target=https://api.launchpad.net/devel/launchpad
+
+# Get target URI from resource (example workflow)
+TARGET=$(lp-api get ubuntu/jammy/+source/openssl | jq -r '.self_link')
+lp-api post bugs/123456 ws.op=addTask target="$TARGET"
 ```
+
+### Remove a Bug Task
+**Operation:** `delete` (HTTP DELETE)
+**Resource:** Bug task self_link
+
+Remove a bug task to stop tracking a bug in a specific context.
+
+```bash
+# 1. List all tasks for a bug
+lp-api get bugs/123456 | jq -r '.bug_tasks_collection_link' | xargs lp-api get | \
+  jq -r '.entries[] | "\(.bug_target_display_name): \(.self_link)"'
+
+# 2. Delete a specific task
+lp-api delete https://api.launchpad.net/devel/ubuntu/+source/linux/+bug/123456
+
+# 3. Delete multiple tasks (e.g., all tasks for a specific package)
+lp-api get bugs/123456 | jq -r '.bug_tasks_collection_link' | xargs lp-api get | \
+  jq -r '.entries[] | select(.bug_target_name | contains("old-package")) | .self_link' | \
+  xargs -I {} lp-api delete {}
+```
+
+**Important Notes:**
+- This is a permanent deletion - the task cannot be recovered
+- Use with caution - deleting tasks removes tracking history
+- Not documented in the official API, but works via HTTP DELETE
+- The bug itself is not deleted, only the specific task context
 
 ### Key Filters
 
