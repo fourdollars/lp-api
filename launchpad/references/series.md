@@ -7,6 +7,8 @@ In Launchpad, a **series** represents a specific version or release of a distrib
 - **focal** - Ubuntu 20.04 LTS
 - **jammy** - Ubuntu 22.04 LTS
 - **noble** - Ubuntu 24.04 LTS
+- **questing** - Ubuntu 25.10
+- **resolute** - Ubuntu 26.04 LTS
 
 Series are organized hierarchically:
 - **Distributions** (like Ubuntu) contain multiple series

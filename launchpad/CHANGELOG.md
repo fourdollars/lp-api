@@ -2,6 +2,13 @@
 
 All notable changes to the Launchpad skill will be documented in this file.
 
+## [1.2.8] - 2026-01-22
+
+### Improved
+- **Series**: Added two new Ubuntu series to documentation in `series.md`
+  - Added **questing** - Ubuntu 25.10
+  - Added **resolute** - Ubuntu 26.04 LTS
+
 ## [1.2.7] - 2026-01-21
 
 ### Improved

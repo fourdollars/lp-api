@@ -2,7 +2,7 @@
 name: launchpad
 description: Interact with Canonical's Launchpad platform via the Launchpad API (api.launchpad.net) using the lp-api CLI tool. Use when working with Ubuntu/Debian packages, bugs, builds, people, projects, or any Launchpad API resources. Triggered by mentions of Launchpad API, Ubuntu development, package builds, or bug tracking.
 metadata:
-  version: "1.2.7"
+  version: "1.2.8"
 ---
 
 # Launchpad API
