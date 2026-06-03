@@ -67,6 +67,9 @@ Refer to the documentation in `references/` for detailed usage, patterns, and wo
 - **project.md**: Guide to managing projects, milestones, and releases.
 - **series.md**: Guide to working with Launchpad series (distro releases).
 
+It shall check '<RESOURCE>.md' for '.*/+<RESOURCE>/.*'.
+It shall use 'lp-api get ...'. for '.*/+preview-diff/<ID>/diff_text'.
+
 ## Quick Tips
 
 ### Search Bugs Across ALL Projects
